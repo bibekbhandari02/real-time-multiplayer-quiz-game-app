@@ -195,6 +195,16 @@ export default function Lobby() {
               Waiting for host to start the game...
             </div>
           )}
+
+          {/* Spectate Option */}
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => navigate(`/spectator/${roomCode}`)}
+              className="text-sm text-gray-600 hover:text-primary underline"
+            >
+              👁️ Watch as Spectator Instead
+            </button>
+          </div>
         </motion.div>
 
         {/* Invite Friends Modal */}

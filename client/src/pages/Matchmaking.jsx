@@ -96,21 +96,21 @@ export default function Matchmaking() {
   };
 
   return (
-    <div className="min-h-screen p-4 flex items-center justify-center">
+    <div className="min-h-screen p-3 md:p-4 flex items-center justify-center">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full"
+        className="bg-white rounded-xl md:rounded-2xl p-6 md:p-8 shadow-2xl max-w-md w-full"
       >
-        <h1 className="text-3xl font-bold text-center mb-6">Ranked Matchmaking</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-center mb-4 md:mb-6">Ranked Matchmaking</h1>
 
         {queueStatus && (
-          <div className="bg-gray-100 rounded-lg p-4 mb-6">
-            <div className="flex justify-between mb-2">
+          <div className="bg-gray-100 rounded-lg p-3 md:p-4 mb-4 md:mb-6">
+            <div className="flex justify-between mb-2 text-sm md:text-base">
               <span className="text-gray-600">Players in Queue:</span>
               <span className="font-bold">{queueStatus.playersInQueue}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between text-sm md:text-base">
               <span className="text-gray-600">Avg Wait Time:</span>
               <span className="font-bold">{queueStatus.averageWaitTime}s</span>
             </div>

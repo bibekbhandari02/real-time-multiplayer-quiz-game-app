@@ -65,7 +65,7 @@ export default function Home() {
           }}
           className="text-4xl font-bold text-white hover:opacity-80 transition cursor-pointer"
         >
-          Quiz Master
+          TriviaNova
         </button>
         <div className="flex gap-2">
           <button
@@ -143,6 +143,12 @@ export default function Home() {
             >
               Join Room
             </button>
+            <button
+              onClick={() => roomCode.trim() && navigate(`/spectator/${roomCode.toUpperCase()}`)}
+              className="w-full mt-2 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition text-sm"
+            >
+              👁️ Spectate Instead
+            </button>
           </motion.div>
 
           <motion.div
@@ -161,6 +167,7 @@ export default function Home() {
               Find Match
             </button>
           </motion.div>
+
         </div>
 
         <motion.div

@@ -34,7 +34,7 @@ export default function Navigation() {
             }}
             className="text-xl font-bold hover:opacity-80 transition active:scale-95"
           >
-            Quiz Master
+            TriviaNova
           </button>
           <button
             onClick={() => setIsOpen(!isOpen)}

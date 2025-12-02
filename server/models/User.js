@@ -18,6 +18,10 @@ const userSchema = new mongoose.Schema({
     accuracy: { type: Number, default: 0 },
     streak: { type: Number, default: 0 }
   },
+  powerups: [{
+    powerupKey: { type: String, required: true },
+    quantity: { type: Number, default: 0 }
+  }],
   friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   friendRequests: [{
     from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

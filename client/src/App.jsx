@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from './store/authStore';
 import { getSocket, initSocket } from './socket/socket';
+import ToastContainer from './components/ToastContainer';
+import ToastNotification from './components/ToastNotification';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
@@ -13,6 +15,7 @@ import Leaderboard from './pages/Leaderboard';
 import Matchmaking from './pages/Matchmaking';
 import Achievements from './pages/Achievements';
 import Friends from './pages/Friends';
+import Spectator from './pages/Spectator';
 import AdminDashboard from './pages/AdminDashboard';
 
 function AppContent() {
@@ -62,6 +65,7 @@ function AppContent() {
         <Route path="/matchmaking" element={token ? <Matchmaking /> : <Navigate to="/login" />} />
         <Route path="/achievements" element={token ? <Achievements /> : <Navigate to="/login" />} />
         <Route path="/friends" element={token ? <Friends /> : <Navigate to="/login" />} />
+        <Route path="/spectator/:roomCode" element={token ? <Spectator /> : <Navigate to="/login" />} />
         <Route path="/admin" element={token ? <AdminDashboard /> : <Navigate to="/login" />} />
       </Routes>
 
@@ -110,6 +114,9 @@ function AppContent() {
           </div>
         )}
       </AnimatePresence>
+      
+      {/* Toast Notifications */}
+      <ToastNotification />
     </>
   );
 }
@@ -119,6 +126,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ToastContainer />
       <AppContent />
     </BrowserRouter>
   );

@@ -14,7 +14,10 @@ import achievementsRoutes from './routes/achievements.js';
 import aiRoutes from './routes/ai.js';
 import leaderboardRoutes from './routes/leaderboard.js';
 import socialRoutes from './routes/social.js';
+import notificationRoutes from './routes/notifications.js';
+import powerupRoutes from './routes/powerups.js';
 import { setupSocketHandlers } from './sockets/index.js';
+import NotificationService from './services/notificationService.js';
 
 dotenv.config();
 
@@ -32,6 +35,10 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(express.json());
 
+// Initialize notification service
+const notificationService = new NotificationService(io);
+export { notificationService };
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/quiz', quizRoutes);
@@ -41,6 +48,8 @@ app.use('/api/achievements', achievementsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/social', socialRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/powerups', powerupRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });

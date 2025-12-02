@@ -31,7 +31,7 @@ export default function Login() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md"
       >
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">Quiz Master</h1>
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">TriviaNova</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>

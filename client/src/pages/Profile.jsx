@@ -12,11 +12,11 @@ export default function Profile() {
   }, []);
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-3 md:p-4 pb-20 md:pb-4">
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate('/')}
-          className="text-white mb-6 hover:underline"
+          className="text-white mb-4 md:mb-6 hover:underline text-sm md:text-base"
         >
           ← Back to Home
         </button>
@@ -24,37 +24,37 @@ export default function Profile() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl p-8 shadow-2xl"
+          className="bg-white rounded-xl md:rounded-2xl p-6 md:p-8 shadow-2xl"
         >
-          <div className="text-center mb-8">
-            <div className="w-24 h-24 bg-gradient-to-r from-primary to-secondary rounded-full mx-auto mb-4 flex items-center justify-center text-white text-4xl font-bold">
+          <div className="text-center mb-6 md:mb-8">
+            <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-r from-primary to-secondary rounded-full mx-auto mb-3 md:mb-4 flex items-center justify-center text-white text-3xl md:text-4xl font-bold">
               {user.username[0].toUpperCase()}
             </div>
-            <h1 className="text-3xl font-bold">{user.username}</h1>
-            <p className="text-gray-600">{user.email}</p>
+            <h1 className="text-2xl md:text-3xl font-bold">{user.username}</h1>
+            <p className="text-gray-600 text-sm md:text-base">{user.email}</p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg text-center border-2 border-blue-200">
-              <p className="text-4xl font-bold text-blue-600">{user.stats?.gamesPlayed || 0}</p>
-              <p className="text-gray-700 font-semibold mt-1">Games Played</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 md:p-6 rounded-lg text-center border-2 border-blue-200">
+              <p className="text-2xl md:text-4xl font-bold text-blue-600">{user.stats?.gamesPlayed || 0}</p>
+              <p className="text-gray-700 font-semibold mt-1 text-xs md:text-base">Games Played</p>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg text-center border-2 border-green-200">
-              <p className="text-4xl font-bold text-green-600">{user.stats?.gamesWon || 0}</p>
-              <p className="text-gray-700 font-semibold mt-1">Wins</p>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 md:p-6 rounded-lg text-center border-2 border-green-200">
+              <p className="text-2xl md:text-4xl font-bold text-green-600">{user.stats?.gamesWon || 0}</p>
+              <p className="text-gray-700 font-semibold mt-1 text-xs md:text-base">Wins</p>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg text-center border-2 border-purple-200">
-              <p className="text-4xl font-bold text-purple-600">{user.elo || 1000}</p>
-              <p className="text-gray-700 font-semibold mt-1">ELO Rating</p>
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 md:p-6 rounded-lg text-center border-2 border-purple-200">
+              <p className="text-2xl md:text-4xl font-bold text-purple-600">{user.elo || 1000}</p>
+              <p className="text-gray-700 font-semibold mt-1 text-xs md:text-base">ELO Rating</p>
             </div>
           </div>
 
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">Badges</h2>
+          <div className="mb-6 md:mb-8">
+            <div className="flex justify-between items-center mb-3 md:mb-4">
+              <h2 className="text-xl md:text-2xl font-bold">Badges</h2>
               <button
                 onClick={() => navigate('/achievements')}
-                className="text-primary hover:underline font-semibold"
+                className="text-primary hover:underline font-semibold text-sm md:text-base"
               >
                 View All →
               </button>
@@ -75,11 +75,11 @@ export default function Profile() {
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold mb-4">Performance Stats</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <p className="text-gray-600 text-sm font-semibold">Win Rate</p>
-                <p className="text-3xl font-bold text-primary">
+            <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Performance Stats</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+              <div className="bg-gray-100 p-3 md:p-4 rounded-lg">
+                <p className="text-gray-600 text-xs md:text-sm font-semibold">Win Rate</p>
+                <p className="text-2xl md:text-3xl font-bold text-primary">
                   {user.stats?.gamesPlayed > 0 
                     ? ((user.stats.gamesWon / user.stats.gamesPlayed) * 100).toFixed(1)
                     : 0}%

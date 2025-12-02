@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -15,6 +15,7 @@ export default function Friends() {
   const [messageInput, setMessageInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [socket, setSocket] = useState(null);
+  const chatEndRef = useRef(null);
   const navigate = useNavigate();
   const { user, token } = useAuthStore();
 
@@ -301,26 +302,33 @@ export default function Friends() {
     }
   }, [selectedFriend]);
 
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages, selectedFriend]);
+
 
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-3 md:p-4 pb-20 md:pb-4">
       <div className="max-w-7xl mx-auto">
         <button
           onClick={() => navigate('/')}
-          className="text-white mb-6 hover:underline"
+          className="text-white mb-4 md:mb-6 hover:underline text-sm md:text-base"
         >
           ← Back to Home
         </button>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {/* Friends List */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="md:col-span-1 bg-white rounded-2xl p-6 shadow-2xl"
+            className="md:col-span-1 bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-2xl"
           >
-            <h1 className="text-2xl font-bold mb-4">👥 Friends</h1>
+            <h1 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">👥 Friends</h1>
 
             {/* Search */}
             <div className="mb-4">
@@ -329,7 +337,7 @@ export default function Friends() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="🔍 Search users..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base"
               />
 
               <AnimatePresence>
@@ -442,14 +450,14 @@ export default function Friends() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="md:col-span-2 bg-white rounded-2xl p-6 shadow-2xl"
+            className="md:col-span-2 bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-2xl"
           >
             {selectedFriend ? (
               <>
-                <div className="flex justify-between items-center mb-4 pb-4 border-b">
-                  <div>
-                    <h2 className="text-2xl font-bold">{selectedFriend.username}</h2>
-                    <p className="text-sm text-gray-600">{selectedFriend.elo} ELO • {selectedFriend.stats?.gamesWon || 0} wins</p>
+                <div className="flex justify-between items-center mb-3 md:mb-4 pb-3 md:pb-4 border-b">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-xl md:text-2xl font-bold truncate">{selectedFriend.username}</h2>
+                    <p className="text-xs md:text-sm text-gray-600">{selectedFriend.elo} ELO • {selectedFriend.stats?.gamesWon || 0} wins</p>
                   </div>
                   <button
                     onClick={() => setSelectedFriend(null)}
@@ -483,6 +491,7 @@ export default function Friends() {
                             </div>
                           </div>
                         ))}
+                        <div ref={chatEndRef} />
                       </div>
                     )}
                   </div>

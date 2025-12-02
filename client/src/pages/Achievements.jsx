@@ -24,7 +24,7 @@ export default function Achievements() {
   const getDefaultAchievements = () => [
     { id: 1, name: 'First Victory', description: 'Win your first game', icon: '🏆', unlocked: (user?.stats?.gamesWon || 0) >= 1 },
     { id: 2, name: 'Winning Streak', description: 'Win 5 games', icon: '🔥', unlocked: (user?.stats?.gamesWon || 0) >= 5 },
-    { id: 3, name: 'Quiz Master', description: 'Win 10 games', icon: '👑', unlocked: (user?.stats?.gamesWon || 0) >= 10 },
+    { id: 3, name: 'Trivia Champion', description: 'Win 10 games', icon: '👑', unlocked: (user?.stats?.gamesWon || 0) >= 10 },
     { id: 4, name: 'Perfect Score', description: 'Get 100% accuracy in a game', icon: '💯', unlocked: false },
     { id: 5, name: 'Speed Demon', description: 'Answer all questions in under 5 seconds', icon: '⚡', unlocked: false },
     { id: 6, name: 'Dedicated Player', description: 'Play 25 games', icon: '🎮', unlocked: (user?.stats?.gamesPlayed || 0) >= 25 },
@@ -39,27 +39,27 @@ export default function Achievements() {
     <div className="min-h-screen p-4">
       <div className="max-w-4xl mx-auto">
         <button
-          onClick={() => navigate('/profile')}
+          onClick={() => navigate(-1)}
           className="text-white mb-6 hover:underline"
         >
-          ← Back to Profile
+          ← Back
         </button>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl p-8 shadow-2xl"
+          className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-2xl"
         >
-          <h1 className="text-3xl font-bold mb-6">🏆 Achievements</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">🏆 Achievements</h1>
 
-          <div className={`mb-8 p-6 rounded-xl border-2 ${
+          <div className={`mb-6 md:mb-8 p-4 md:p-6 rounded-xl border-2 ${
             progress === '100' 
               ? 'bg-gradient-to-r from-yellow-50 via-orange-50 to-yellow-50 border-yellow-400' 
               : 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200'
           }`}>
             <div className="flex justify-between items-center mb-3">
-              <span className="font-semibold text-lg">Your Progress</span>
-              <span className="font-bold text-primary text-xl">{unlockedCount}/{achievements.length}</span>
+              <span className="font-semibold text-base md:text-lg">Your Progress</span>
+              <span className="font-bold text-primary text-lg md:text-xl">{unlockedCount}/{achievements.length}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4">
               <motion.div
@@ -80,7 +80,7 @@ export default function Achievements() {
                 className="mt-3 text-center"
               >
                 <p className="text-lg font-bold text-yellow-700">🎉 Perfect! All Achievements Unlocked! 🎉</p>
-                <p className="text-sm text-gray-600 mt-1">You're a true Quiz Master!</p>
+                <p className="text-sm text-gray-600 mt-1">You're a true TriviaNova Champion!</p>
               </motion.div>
             ) : (
               <p className="text-sm text-gray-600 mt-2">{progress}% Complete - Keep playing to unlock more!</p>

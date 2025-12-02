@@ -4,12 +4,19 @@ import { addToQueue, removeFromQueue, getQueueStatus } from '../services/matchma
 
 const router = express.Router();
 
+// Store io instance
+let ioInstance = null;
+
+export const setIoInstance = (io) => {
+  ioInstance = io;
+};
+
 router.use(authenticateToken);
 
 router.post('/join-queue', async (req, res) => {
   try {
     const { preferences } = req.body;
-    const result = await addToQueue(req.userId, preferences);
+    const result = await addToQueue(req.userId, preferences, ioInstance);
     
     if (result) {
       res.json({ matched: true, roomCode: result.roomCode });

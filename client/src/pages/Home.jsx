@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { initSocket, getSocket } from '../socket/socket';
+import Navigation from '../components/Navigation';
 
 export default function Home() {
   const [roomCode, setRoomCode] = useState('');
@@ -49,92 +50,113 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-white">Quiz Master</h1>
-          <div className="flex gap-2">
-            <button
-              onClick={() => navigate('/profile')}
-              className="bg-white/20 text-white px-3 py-2 rounded-lg hover:bg-white/30 transition text-sm"
-            >
-              Profile
-            </button>
-            <button
-              onClick={() => navigate('/leaderboard')}
-              className="bg-white/20 text-white px-3 py-2 rounded-lg hover:bg-white/30 transition text-sm"
-            >
-              Leaderboard
-            </button>
-            <button
-              onClick={() => navigate('/achievements')}
-              className="bg-white/20 text-white px-3 py-2 rounded-lg hover:bg-white/30 transition text-sm"
-            >
-              Achievements
-            </button>
-            <button
-              onClick={() => navigate('/friends')}
-              className="bg-white/20 text-white px-3 py-2 rounded-lg hover:bg-white/30 transition text-sm"
-            >
-              Friends
-            </button>
-            <button
-              onClick={logout}
-              className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition text-sm"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
+    <div className="min-h-screen pb-20 pt-16 md:pt-4 px-4">
+      {/* Mobile Navigation */}
+      <div className="md:hidden">
+        <Navigation />
+      </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-2xl p-8 shadow-2xl"
+      {/* Desktop Header */}
+      <div className="hidden md:flex justify-between items-center mb-8 max-w-6xl mx-auto">
+        <button 
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.location.reload();
+          }}
+          className="text-4xl font-bold text-white hover:opacity-80 transition cursor-pointer"
+        >
+          Quiz Master
+        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate('/profile')}
+            className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition"
           >
-            <h2 className="text-2xl font-bold mb-4">Create Room</h2>
-            <p className="text-gray-600 mb-6">Start a new quiz game and invite friends</p>
+            Profile
+          </button>
+          <button
+            onClick={() => navigate('/leaderboard')}
+            className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition"
+          >
+            Leaderboard
+          </button>
+          <button
+            onClick={() => navigate('/achievements')}
+            className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition"
+          >
+            Achievements
+          </button>
+          <button
+            onClick={() => navigate('/friends')}
+            className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition"
+          >
+            Friends
+          </button>
+          <button
+            onClick={logout}
+            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto">
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl"
+          >
+            <div className="text-4xl mb-3">🎮</div>
+            <h2 className="text-xl md:text-2xl font-bold mb-2">Create Room</h2>
+            <p className="text-gray-600 text-sm md:text-base mb-4 md:mb-6">Start a new quiz game and invite friends</p>
             <button
               onClick={() => setShowSettings(true)}
-              className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition"
+              className="w-full bg-primary text-white py-3 md:py-3 rounded-lg font-semibold hover:bg-primary/90 transition text-sm md:text-base"
             >
               Create New Room
             </button>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 0 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-2xl p-8 shadow-2xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl"
           >
-            <h2 className="text-2xl font-bold mb-4">Join Room</h2>
-            <p className="text-gray-600 mb-6">Enter a room code to join an existing game</p>
+            <div className="text-4xl mb-3">🚪</div>
+            <h2 className="text-xl md:text-2xl font-bold mb-2">Join Room</h2>
+            <p className="text-gray-600 text-sm md:text-base mb-4 md:mb-6">Enter a room code to join an existing game</p>
             <input
               type="text"
               value={roomCode}
               onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
               placeholder="Enter room code"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-primary focus:border-transparent"
+              maxLength={6}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-primary focus:border-primary text-center text-lg font-bold tracking-wider"
             />
             <button
               onClick={joinRoom}
-              className="w-full bg-secondary text-white py-3 rounded-lg font-semibold hover:bg-secondary/90 transition"
+              className="w-full bg-secondary text-white py-3 rounded-lg font-semibold hover:bg-secondary/90 transition text-sm md:text-base"
             >
               Join Room
             </button>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-2xl p-8 shadow-2xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl"
           >
-            <h2 className="text-2xl font-bold mb-4">Ranked Match</h2>
-            <p className="text-gray-600 mb-6">Compete with players at your skill level</p>
+            <div className="text-4xl mb-3">⚔️</div>
+            <h2 className="text-xl md:text-2xl font-bold mb-2">Ranked Match</h2>
+            <p className="text-gray-600 text-sm md:text-base mb-4 md:mb-6">Compete with players at your skill level</p>
             <button
               onClick={() => navigate('/matchmaking')}
-              className="w-full bg-gradient-to-r from-accent to-secondary text-white py-3 rounded-lg font-semibold hover:opacity-90 transition"
+              className="w-full bg-gradient-to-r from-accent to-secondary text-white py-3 rounded-lg font-semibold hover:opacity-90 transition text-sm md:text-base"
             >
               Find Match
             </button>
@@ -144,37 +166,37 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mt-8 bg-white rounded-2xl p-8 shadow-2xl"
+          transition={{ delay: 0.3 }}
+          className="mt-4 md:mt-8 bg-white rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl"
         >
-          <h2 className="text-2xl font-bold mb-4">Your Stats</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg text-center border border-blue-200">
-              <p className="text-3xl font-bold text-blue-600">{user.stats?.gamesPlayed || 0}</p>
-              <p className="text-gray-700 font-semibold text-sm">Games Played</p>
+          <h2 className="text-xl md:text-2xl font-bold mb-4">Your Stats</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 md:p-4 rounded-lg text-center border border-blue-200">
+              <p className="text-2xl md:text-3xl font-bold text-blue-600">{user.stats?.gamesPlayed || 0}</p>
+              <p className="text-gray-700 font-semibold text-xs md:text-sm mt-1">Games Played</p>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg text-center border border-green-200">
-              <p className="text-3xl font-bold text-green-600">{user.stats?.gamesWon || 0}</p>
-              <p className="text-gray-700 font-semibold text-sm">Wins</p>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 p-3 md:p-4 rounded-lg text-center border border-green-200">
+              <p className="text-2xl md:text-3xl font-bold text-green-600">{user.stats?.gamesWon || 0}</p>
+              <p className="text-gray-700 font-semibold text-xs md:text-sm mt-1">Wins</p>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg text-center border border-purple-200">
-              <p className="text-3xl font-bold text-purple-600">
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-3 md:p-4 rounded-lg text-center border border-purple-200">
+              <p className="text-2xl md:text-3xl font-bold text-purple-600">
                 {user.stats?.gamesPlayed > 0 
                   ? ((user.stats.gamesWon / user.stats.gamesPlayed) * 100).toFixed(1)
                   : 0}%
               </p>
-              <p className="text-gray-700 font-semibold text-sm">Win Rate</p>
+              <p className="text-gray-700 font-semibold text-xs md:text-sm mt-1">Win Rate</p>
             </div>
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg text-center border border-orange-200">
-              <p className="text-3xl font-bold text-orange-600">{user.stats?.accuracy?.toFixed(1) || 0}%</p>
-              <p className="text-gray-700 font-semibold text-sm">Accuracy</p>
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-3 md:p-4 rounded-lg text-center border border-orange-200">
+              <p className="text-2xl md:text-3xl font-bold text-orange-600">{user.stats?.accuracy?.toFixed(1) || 0}%</p>
+              <p className="text-gray-700 font-semibold text-xs md:text-sm mt-1">Accuracy</p>
             </div>
           </div>
           
           <div className="mt-4 flex justify-center">
             <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 px-6 py-3 rounded-lg border-2 border-yellow-300">
-              <p className="text-sm text-gray-600 font-semibold">ELO Rating</p>
-              <p className="text-2xl font-bold text-yellow-700">{user.elo || 1000}</p>
+              <p className="text-xs md:text-sm text-gray-600 font-semibold">ELO Rating</p>
+              <p className="text-xl md:text-2xl font-bold text-yellow-700">{user.elo || 1000}</p>
             </div>
           </div>
         </motion.div>

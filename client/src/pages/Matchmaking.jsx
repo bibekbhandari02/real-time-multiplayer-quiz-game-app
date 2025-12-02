@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { getSocket } from '../socket/socket';
+import { useAuthStore } from '../store/authStore';
 
 export default function Matchmaking() {
   const [searching, setSearching] = useState(false);
@@ -10,6 +11,7 @@ export default function Matchmaking() {
   const [waitTime, setWaitTime] = useState(0);
   const navigate = useNavigate();
   const socket = getSocket();
+  const { token } = useAuthStore();
 
   useEffect(() => {
     fetchQueueStatus();
@@ -27,8 +29,15 @@ export default function Matchmaking() {
   }, [searching]);
 
   useEffect(() => {
-    socket.on('match_found', ({ roomCode }) => {
-      navigate(`/lobby/${roomCode}`);
+    socket.on('match_found', ({ roomCode, autoStart }) => {
+      if (autoStart) {
+        // For ranked matches, go directly to game
+        setSearching(false);
+        navigate(`/game/${roomCode}`);
+      } else {
+        // For regular matches, go to lobby
+        navigate(`/lobby/${roomCode}`);
+      }
     });
 
     return () => {
@@ -38,8 +47,9 @@ export default function Matchmaking() {
 
   const fetchQueueStatus = async () => {
     try {
+      if (!token) return;
       const { data } = await axios.get('/api/matchmaking/status', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       setQueueStatus(data);
     } catch (error) {
@@ -49,12 +59,17 @@ export default function Matchmaking() {
 
   const startMatchmaking = async () => {
     try {
+      if (!token) {
+        alert('Please log in to use matchmaking');
+        return;
+      }
+      
       setSearching(true);
       setWaitTime(0);
       
       const { data } = await axios.post('/api/matchmaking/join-queue', 
         { preferences: {} },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (data.matched) {
@@ -62,14 +77,16 @@ export default function Matchmaking() {
       }
     } catch (error) {
       console.error('Matchmaking error:', error);
+      alert('Failed to join matchmaking. Please try again.');
       setSearching(false);
     }
   };
 
   const cancelMatchmaking = async () => {
     try {
+      if (!token) return;
       await axios.post('/api/matchmaking/leave-queue', {},
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setSearching(false);
       setWaitTime(0);

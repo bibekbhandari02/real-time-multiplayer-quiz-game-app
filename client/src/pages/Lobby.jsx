@@ -112,48 +112,48 @@ export default function Lobby() {
   const isHost = room.host.toString() === user.id;
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-3 md:p-4 pb-20 md:pb-4">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl p-8 shadow-2xl"
+          className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-2xl"
         >
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-3xl font-bold">Room: {roomCode}</h1>
-              <p className="text-gray-600">Waiting for players...</p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={openInviteModal}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition flex items-center gap-2"
-              >
-                <span>👥</span> Invite Friends
-              </button>
+          <div className="mb-4 md:mb-6">
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex-1">
+                <h1 className="text-xl md:text-3xl font-bold">Room: {roomCode}</h1>
+                <p className="text-gray-600 text-sm md:text-base">Waiting for players...</p>
+              </div>
               <button
                 onClick={leaveRoom}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                className="bg-red-500 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-red-600 transition text-sm md:text-base whitespace-nowrap ml-2"
               >
                 Leave
               </button>
             </div>
+            <button
+              onClick={openInviteModal}
+              className="w-full bg-blue-500 text-white px-4 py-2 md:py-3 rounded-lg hover:bg-blue-600 transition flex items-center justify-center gap-2 text-sm md:text-base"
+            >
+              <span>👥</span> Invite Friends
+            </button>
           </div>
 
-          <div className="mb-6">
-            <h2 className="text-xl font-bold mb-4">Players ({players.length}/{room.settings.maxPlayers})</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="mb-4 md:mb-6">
+            <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Players ({players.length}/{room.settings.maxPlayers})</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
               {players.map((player, index) => (
                 <motion.div
                   key={`${player.userId}-${index}`}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-gradient-to-r from-primary to-secondary text-white p-4 rounded-lg text-center"
+                  className="bg-gradient-to-r from-primary to-secondary text-white p-3 md:p-4 rounded-lg text-center"
                 >
-                  <p className="font-semibold">{player.username}</p>
+                  <p className="font-semibold text-sm md:text-base truncate">{player.username}</p>
                   {player.userId.toString() === room.host.toString() && (
-                    <span className="text-xs bg-yellow-400 text-black px-2 py-1 rounded mt-2 inline-block">HOST</span>
+                    <span className="text-xs bg-yellow-400 text-black px-2 py-1 rounded mt-1 md:mt-2 inline-block">HOST</span>
                   )}
                 </motion.div>
               ))}

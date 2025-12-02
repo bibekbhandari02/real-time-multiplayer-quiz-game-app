@@ -32,6 +32,13 @@ export default function Game() {
       return;
     }
 
+    // Join the room via socket
+    socket.emit('join_room', {
+      roomCode,
+      userId: user.id,
+      username: user.username
+    });
+
     let timerInterval = null;
 
     // Track tab visibility for anti-cheat
@@ -108,6 +115,10 @@ export default function Game() {
       }, 1000);
     });
 
+    socket.on('ranked_starting', ({ countdown }) => {
+      console.log(`Ranked match starting in ${countdown} seconds...`);
+    });
+
     socket.on('game_over', ({ winner, leaderboard: finalBoard }) => {
       if (timerInterval) {
         clearInterval(timerInterval);
@@ -140,6 +151,7 @@ export default function Game() {
       socket.off('all_answered');
       socket.off('game_over');
       socket.off('player_left');
+      socket.off('ranked_starting');
     };
   }, [socket, roomCode]);
 
@@ -220,22 +232,24 @@ export default function Game() {
   };
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-3 md:p-4 pb-20 md:pb-4">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6 text-white">
-          <div className="bg-white/20 px-6 py-3 rounded-xl">
-            <p className="text-sm opacity-80">Score</p>
-            <p className="text-2xl font-bold">{score}</p>
+        {/* Mobile-optimized header */}
+        <div className="flex justify-between items-center mb-4 md:mb-6 text-white gap-2">
+          <div className="bg-white/20 px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl flex-1 max-w-[100px] md:max-w-none">
+            <p className="text-xs md:text-sm opacity-80">Score</p>
+            <p className="text-xl md:text-2xl font-bold">{score}</p>
           </div>
           <button
             onClick={quitGame}
-            className="bg-red-500/80 hover:bg-red-500 px-4 py-2 rounded-lg font-semibold transition"
+            className="bg-red-500/80 hover:bg-red-500 px-3 md:px-4 py-2 rounded-lg font-semibold transition text-sm md:text-base whitespace-nowrap"
           >
-            ❌ Quit Game
+            <span className="hidden md:inline">❌ Quit</span>
+            <span className="md:hidden">❌</span>
           </button>
-          <div className={`bg-white/20 px-6 py-3 rounded-xl ${timeLeft <= 5 ? 'animate-pulse bg-red-500/40' : ''}`}>
-            <p className="text-sm opacity-80">Time</p>
-            <p className="text-2xl font-bold">{timeLeft}s</p>
+          <div className={`bg-white/20 px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl flex-1 max-w-[100px] md:max-w-none ${timeLeft <= 5 ? 'animate-pulse bg-red-500/40' : ''}`}>
+            <p className="text-xs md:text-sm opacity-80">Time</p>
+            <p className="text-xl md:text-2xl font-bold">{timeLeft}s</p>
           </div>
         </div>
 
@@ -243,19 +257,19 @@ export default function Game() {
           key={questionIndex}
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white rounded-2xl p-8 shadow-2xl mb-6"
+          className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-2xl mb-4 md:mb-6"
         >
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-2">
+          <div className="mb-4 md:mb-6">
+            <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">Question {questionIndex + 1}</span>
+                <span className="text-xs md:text-sm text-gray-500 font-semibold">Q{questionIndex + 1}</span>
                 {question.category && (
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                  <span className="px-2 md:px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
                     {question.category}
                   </span>
                 )}
               </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-semibold ${
                 question.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
                 question.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
                 'bg-red-100 text-red-700'
@@ -263,10 +277,10 @@ export default function Game() {
                 {question.difficulty?.toUpperCase()}
               </span>
             </div>
-            <h2 className="text-2xl font-bold mt-2">{question.question}</h2>
+            <h2 className="text-lg md:text-2xl font-bold leading-tight">{question.question}</h2>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-3 md:gap-4">
             {question.options.map((option, index) => {
               const isSelected = selectedAnswer === index;
               const isCorrectAnswer = showResult && question.correctAnswer === index;
@@ -277,23 +291,23 @@ export default function Game() {
                   key={index}
                   onClick={() => submitAnswer(index)}
                   disabled={answered || timeLeft === 0}
-                  className={`p-4 rounded-lg text-left font-semibold transition-all relative ${
+                  className={`p-3 md:p-4 rounded-lg text-left font-semibold transition-all relative min-h-[60px] md:min-h-[70px] ${
                     isCorrectAnswer
                       ? 'bg-green-500 text-white shadow-lg border-2 border-green-600'
                       : isWrongAnswer
                       ? 'bg-red-500 text-white shadow-lg border-2 border-red-600'
                       : isSelected
                       ? 'bg-primary text-white shadow-lg scale-105'
-                      : 'bg-gray-100 hover:bg-gray-200 hover:scale-102'
+                      : 'bg-gray-100 hover:bg-gray-200 active:scale-95'
                   } ${answered || timeLeft === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 >
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center font-bold">
+                  <span className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 w-7 h-7 md:w-8 md:h-8 bg-white/20 rounded-full flex items-center justify-center font-bold text-sm md:text-base">
                     {String.fromCharCode(65 + index)}
                   </span>
-                  <span className="ml-10 flex items-center justify-between">
-                    <span>{option}</span>
-                    {isCorrectAnswer && <span className="text-2xl">✓</span>}
-                    {isWrongAnswer && <span className="text-2xl">✗</span>}
+                  <span className="ml-9 md:ml-10 flex items-center justify-between text-sm md:text-base">
+                    <span className="pr-2">{option}</span>
+                    {isCorrectAnswer && <span className="text-xl md:text-2xl">✓</span>}
+                    {isWrongAnswer && <span className="text-xl md:text-2xl">✗</span>}
                   </span>
                 </button>
               );
@@ -304,14 +318,14 @@ export default function Game() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`mt-4 p-4 rounded-lg ${
+              className={`mt-3 md:mt-4 p-3 md:p-4 rounded-lg ${
                 isCorrect ? 'bg-green-100 border-2 border-green-500' : 'bg-red-100 border-2 border-red-500'
               }`}
             >
-              <p className={`font-bold text-lg ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
+              <p className={`font-bold text-base md:text-lg ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
                 {isCorrect ? '✓ Correct!' : '✗ Wrong Answer'}
               </p>
-              <p className="text-gray-700 mt-2">
+              <p className="text-gray-700 mt-2 text-sm md:text-base">
                 The correct answer is: <strong>{question.options[question.correctAnswer]}</strong>
               </p>
             </motion.div>

@@ -9,7 +9,7 @@ import { connectRedis } from './config/redis.js';
 import authRoutes from './routes/auth.js';
 import quizRoutes from './routes/quiz.js';
 import adminRoutes from './routes/admin.js';
-import matchmakingRoutes from './routes/matchmaking.js';
+import matchmakingRoutes, { setIoInstance } from './routes/matchmaking.js';
 import achievementsRoutes from './routes/achievements.js';
 import aiRoutes from './routes/ai.js';
 import leaderboardRoutes from './routes/leaderboard.js';
@@ -48,6 +48,9 @@ app.get('/health', (req, res) => {
 
 // Socket.IO setup
 setupSocketHandlers(io);
+
+// Set io instance for matchmaking
+setIoInstance(io);
 
 // Database connections
 await connectDB();

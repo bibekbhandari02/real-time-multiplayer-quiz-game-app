@@ -459,35 +459,6 @@ export default function Friends() {
                   </button>
                 </div>
 
-                {/* Play Together */}
-                <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
-                  <h3 className="font-semibold mb-3 flex items-center gap-2 text-lg">
-                    🎮 Play Together
-                  </h3>
-                  
-                  <p className="text-sm text-gray-600 mb-3">
-                    Challenge {selectedFriend.username} to a quiz game!
-                  </p>
-                  
-                  <button
-                    onClick={() => {
-                      // Store friend info and go to home to create room
-                      sessionStorage.setItem('playWithFriend', JSON.stringify({
-                        id: selectedFriend._id,
-                        username: selectedFriend.username
-                      }));
-                      navigate('/');
-                    }}
-                    className="w-full bg-gradient-to-r from-primary to-secondary text-white px-4 py-3 rounded-lg hover:opacity-90 transition font-semibold shadow-lg"
-                  >
-                    🎯 Challenge {selectedFriend.username}
-                  </button>
-                  
-                  <p className="text-xs text-gray-500 mt-2 text-center">
-                    Creates a room and invites your friend automatically
-                  </p>
-                </div>
-
                 {/* Chat */}
                 <div className="flex flex-col h-96">
                   <h3 className="font-semibold mb-2">💬 Chat</h3>

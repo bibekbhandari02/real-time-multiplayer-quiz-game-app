@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { initSocket, getSocket } from '../socket/socket';
 import Navigation from '../components/Navigation';
+import Navbar from '../components/Navbar';
 
 export default function Home() {
   const [roomCode, setRoomCode] = useState('');
@@ -50,56 +51,13 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen pb-20 pt-16 md:pt-4 px-4">
-      {/* Mobile Navigation */}
-      <div className="md:hidden">
-        <Navigation />
-      </div>
-
-      {/* Desktop Header */}
-      <div className="hidden md:flex justify-between items-center mb-8 max-w-6xl mx-auto">
-        <button 
-          onClick={() => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            window.location.reload();
-          }}
-          className="text-4xl font-bold text-white hover:opacity-80 transition cursor-pointer"
-        >
-          TriviaNova
-        </button>
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigate('/profile')}
-            className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition"
-          >
-            Profile
-          </button>
-          <button
-            onClick={() => navigate('/leaderboard')}
-            className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition"
-          >
-            Leaderboard
-          </button>
-          <button
-            onClick={() => navigate('/achievements')}
-            className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition"
-          >
-            Achievements
-          </button>
-          <button
-            onClick={() => navigate('/friends')}
-            className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition"
-          >
-            Friends
-          </button>
-          <button
-            onClick={logout}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-          >
-            Logout
-          </button>
+    <>
+      <Navbar />
+      <div className="min-h-screen pb-20 pt-4 px-4">
+        {/* Mobile Navigation */}
+        <div className="md:hidden">
+          <Navigation />
         </div>
-      </div>
 
       <div className="max-w-6xl mx-auto">
 
@@ -109,7 +67,6 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             className="bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl border-2 border-green-500/30 hover:border-green-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all"
           >
-            <div className="text-4xl mb-3 filter drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">🎮</div>
             <h2 className="text-xl md:text-2xl font-bold mb-2 text-green-400">Create Room</h2>
             <p className="text-gray-400 text-sm md:text-base mb-4 md:mb-6">Start a new quiz game and invite friends</p>
             <button
@@ -126,7 +83,6 @@ export default function Home() {
             transition={{ delay: 0.1 }}
             className="bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl border-2 border-green-500/30 hover:border-green-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all"
           >
-            <div className="text-4xl mb-3 filter drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">🚪</div>
             <h2 className="text-xl md:text-2xl font-bold mb-2 text-green-400">Join Room</h2>
             <p className="text-gray-400 text-sm md:text-base mb-4 md:mb-6">Enter a room code to join an existing game</p>
             <input
@@ -147,7 +103,7 @@ export default function Home() {
               onClick={() => roomCode.trim() && navigate(`/spectator/${roomCode.toUpperCase()}`)}
               className="w-full mt-2 bg-gradient-to-r from-gray-800 to-gray-700 text-gray-300 py-2 rounded-lg font-semibold hover:from-gray-700 hover:to-gray-600 transition border border-gray-600 text-sm"
             >
-              👁️ Spectate Instead
+              👁️ Spectate
             </button>
           </motion.div>
 
@@ -157,7 +113,6 @@ export default function Home() {
             transition={{ delay: 0.2 }}
             className="bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl border-2 border-green-500/30 hover:border-green-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all"
           >
-            <div className="text-4xl mb-3 filter drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">⚔️</div>
             <h2 className="text-xl md:text-2xl font-bold mb-2 text-green-400">Ranked Match</h2>
             <p className="text-gray-400 text-sm md:text-base mb-4 md:mb-6">Compete with players at your skill level</p>
             <button
@@ -308,5 +263,6 @@ export default function Home() {
         )}
       </div>
     </div>
+    </>
   );
 }

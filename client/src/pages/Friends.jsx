@@ -36,7 +36,10 @@ export default function Friends() {
 
   useEffect(() => {
     // Listen for chat messages and online status
-    if (socket) {
+    if (socket && user) {
+      // Announce that this user is online
+      socket.emit('user_connected', { userId: user.id });
+
       socket.on('friend_message', (data) => {
         setChatMessages(prev => ({
           ...prev,
@@ -56,21 +59,21 @@ export default function Friends() {
 
       // Listen for online status updates
       socket.on('user_online', (data) => {
+        console.log('User came online:', data.userId);
         setOnlineUsers(prev => new Set([...prev, data.userId]));
       });
 
       socket.on('user_offline', (data) => {
+        console.log('User went offline:', data.userId);
         setOnlineUsers(prev => {
           const newSet = new Set(prev);
           newSet.delete(data.userId);
           return newSet;
         });
       });
-
-      // Request online friends list
-      socket.emit('get_online_friends');
       
       socket.on('online_friends_list', (data) => {
+        console.log('Online friends:', data.onlineUserIds);
         setOnlineUsers(new Set(data.onlineUserIds || []));
       });
     }
@@ -85,7 +88,7 @@ export default function Friends() {
         socket.off('online_friends_list');
       }
     };
-  }, [socket, navigate]);
+  }, [socket, navigate, user]);
 
   const fetchFriends = async () => {
     try {
@@ -104,6 +107,12 @@ export default function Friends() {
       
       console.log('Friends loaded:', data);
       setFriends(data || []);
+      
+      // Request online status for these friends
+      if (socket && data && data.length > 0) {
+        const friendIds = data.map(f => f._id);
+        socket.emit('get_online_friends', { friendIds });
+      }
     } catch (error) {
       console.error('Failed to fetch friends:', error.response?.data || error.message);
       setFriends([]);
@@ -451,11 +460,11 @@ export default function Friends() {
                           {/* Active Status Indicator */}
                           <div className="relative flex-shrink-0">
                             <div className={`w-2 h-2 rounded-full ${
-                              friend.isOnline || (friend.lastActive && new Date() - new Date(friend.lastActive) < 5 * 60 * 1000)
+                              onlineUsers.has(friend._id)
                                 ? 'bg-green-400 shadow-[0_0_8px_rgba(34,197,94,0.8)]'
                                 : 'bg-gray-600'
                             }`}>
-                              {(friend.isOnline || (friend.lastActive && new Date() - new Date(friend.lastActive) < 5 * 60 * 1000)) && (
+                              {onlineUsers.has(friend._id) && (
                                 <span className="absolute inset-0 w-2 h-2 bg-green-400 rounded-full animate-ping opacity-75"></span>
                               )}
                             </div>

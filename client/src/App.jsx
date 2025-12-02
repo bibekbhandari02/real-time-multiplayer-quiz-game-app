@@ -72,26 +72,26 @@ function AppContent() {
       {/* Game Invite Modal */}
       <AnimatePresence>
         {invite && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.8, y: 50 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 50 }}
-              className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
+              className="bg-gradient-to-br from-gray-900 to-black rounded-2xl p-8 max-w-md w-full shadow-2xl border-2 border-green-500/50"
             >
               <div className="text-center mb-6">
-                <div className="w-20 h-20 bg-gradient-to-r from-primary to-secondary rounded-full mx-auto mb-4 flex items-center justify-center text-4xl">
+                <div className="w-20 h-20 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl shadow-[0_0_30px_rgba(16,185,129,0.5)]">
                   🎮
                 </div>
-                <h2 className="text-3xl font-bold mb-2">Game Invite!</h2>
-                <p className="text-gray-600 text-lg">
-                  <span className="font-bold text-primary">{invite.fromUsername}</span> invited you to play
+                <h2 className="text-3xl font-bold mb-2 text-green-400">Game Invite!</h2>
+                <p className="text-gray-400 text-lg">
+                  <span className="font-bold text-green-400">{invite.fromUsername}</span> invited you to play
                 </p>
               </div>
 
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-6 border-2 border-blue-200">
-                <p className="text-sm text-gray-600 text-center mb-1">Room Code</p>
-                <p className="text-3xl font-bold text-center text-primary tracking-wider">
+              <div className="bg-gradient-to-r from-gray-800 to-gray-900 p-4 rounded-lg mb-6 border-2 border-green-500/50">
+                <p className="text-sm text-gray-400 text-center mb-1">Room Code</p>
+                <p className="text-3xl font-bold text-center text-green-400 tracking-wider">
                   {invite.roomCode}
                 </p>
               </div>
@@ -99,13 +99,13 @@ function AppContent() {
               <div className="flex gap-3">
                 <button
                   onClick={declineInvite}
-                  className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
+                  className="flex-1 bg-gradient-to-r from-gray-800 to-gray-700 text-gray-300 py-3 rounded-lg font-semibold hover:from-gray-700 hover:to-gray-600 transition border border-gray-600"
                 >
                   Decline
                 </button>
                 <button
                   onClick={acceptInvite}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition shadow-lg"
+                  className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-lg font-semibold hover:from-green-500 hover:to-emerald-500 transition shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)]"
                 >
                   Accept & Join
                 </button>

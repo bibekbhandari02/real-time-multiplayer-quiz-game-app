@@ -3,6 +3,7 @@ import { handleRoomEvents } from './handlers/room.js';
 import { handleGameEvents } from './handlers/game.js';
 import { handleChatEvents } from './handlers/chat.js';
 import { setupSpectatorHandlers } from './handlers/spectator.js';
+import { setupPresenceHandlers } from './handlers/presence.js';
 import { antiCheatDetector } from '../services/antiCheatService.js';
 
 export const setupSocketHandlers = (io) => {
@@ -14,6 +15,7 @@ export const setupSocketHandlers = (io) => {
     handleGameEvents(socket, io);
     handleChatEvents(socket, io);
     setupSpectatorHandlers(io, socket);
+    setupPresenceHandlers(io, socket);
 
     // Anti-cheat tracking
     socket.on('tab_visibility', (data) => {

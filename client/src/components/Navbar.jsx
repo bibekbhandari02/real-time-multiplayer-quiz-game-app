@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import NotificationCenter from './NotificationCenter';
 
@@ -8,73 +7,112 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-  const navItems = [
-    { name: 'Profile', icon: '👤', path: '/profile' },
-    { name: 'Leaderboard', icon: '🏆', path: '/leaderboard' },
-    { name: 'Achievements', icon: '🎖️', path: '/achievements' },
-    { name: 'Friends', icon: '👥', path: '/friends' },
-  ];
+  if (!user) return null;
 
   return (
     <nav className="bg-gradient-to-r from-black via-gray-900 to-black border-b-2 border-green-500 shadow-lg shadow-green-500/20">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+          
+          {/* LEFT: Logo */}
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 group"
+            className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 text-2xl font-bold hover:scale-105 transition-transform"
           >
-            <div className="text-3xl transform group-hover:rotate-12 transition-transform filter drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">
-              🎯
-            </div>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 text-2xl font-bold tracking-tight group-hover:scale-105 transition-transform drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]">
-              TriviaNova
-            </span>
+            TriviaNova
           </button>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-3">
-            {/* Stats */}
-            <div className="flex items-center gap-2 mr-2">
-              <div className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 backdrop-blur-sm px-4 py-2 rounded-full border border-green-500/50 hover:border-green-400 hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] transition">
-                <span className="text-green-400 text-sm font-semibold">⭐ Level {user.level}</span>
-              </div>
-              <div className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 backdrop-blur-sm px-4 py-2 rounded-full border border-green-500/50 hover:border-green-400 hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] transition">
-                <span className="text-green-400 text-sm font-semibold">🎮 {user.elo || 1000} ELO</span>
-              </div>
-              <div className="bg-gradient-to-r from-yellow-900/50 to-amber-900/50 backdrop-blur-sm px-4 py-2 rounded-full border border-yellow-500/50 hover:border-yellow-400 hover:shadow-[0_0_15px_rgba(234,179,8,0.5)] transition">
-                <span className="text-yellow-400 text-sm font-bold">🪙 {user.coins || 0}</span>
-              </div>
-            </div>
+          {/* RIGHT: Desktop Menu */}
+          <div className="hidden md:flex items-center space-x-6">
+            <button
+              onClick={() => navigate('/leaderboard')}
+              className="text-gray-300 hover:text-green-400 transition-colors text-sm font-medium"
+            >
+              Leaderboard
+            </button>
+            
+            <button
+              onClick={() => navigate('/achievements')}
+              className="text-gray-300 hover:text-green-400 transition-colors text-sm font-medium"
+            >
+              Achievements
+            </button>
+            
+            <button
+              onClick={() => navigate('/friends')}
+              className="text-gray-300 hover:text-green-400 transition-colors text-sm font-medium"
+            >
+              Friends
+            </button>
 
-            {/* Notification Bell */}
             <NotificationCenter />
 
-            {/* Nav Items */}
-            {navItems.map((item) => (
+            {/* Profile Dropdown */}
+            <div className="relative">
               <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className="flex items-center gap-2 bg-gradient-to-r from-gray-900 to-gray-800 backdrop-blur-sm text-green-400 px-4 py-2 rounded-lg hover:from-green-900 hover:to-emerald-900 hover:text-green-300 transition-all hover:scale-105 active:scale-95 border border-green-500/30 hover:border-green-400 hover:shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg border border-green-500/30 hover:border-green-400 transition-all"
               >
-                <span className="text-lg">{item.icon}</span>
-                <span className="text-sm font-medium">{item.name}</span>
+                <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  {user.username[0].toUpperCase()}
+                </div>
+                <span className="text-green-400 text-sm font-semibold">{user.username}</span>
+                <svg 
+                  className={`w-4 h-4 text-gray-400 transition-transform ${profileDropdownOpen ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
-            ))}
 
-            {/* Logout */}
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 bg-gradient-to-r from-red-900 to-red-800 text-red-300 px-4 py-2 rounded-lg hover:from-red-800 hover:to-red-700 hover:text-red-200 transition-all hover:scale-105 active:scale-95 border border-red-500/50 hover:border-red-400 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)]"
-            >
-              <span className="text-lg">🚪</span>
-              <span className="text-sm font-medium">Logout</span>
-            </button>
+              {/* Dropdown Menu */}
+              {profileDropdownOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setProfileDropdownOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-48 bg-gray-900 rounded-lg shadow-2xl border-2 border-green-500/50 z-20">
+                    {/* Stats */}
+                    <div className="p-4 border-b border-green-500/30">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400 text-xs">ELO Rating</span>
+                        <span className="text-green-400 font-bold">{user.elo || 1000}</span>
+                      </div>
+                    </div>
+
+                    {/* Menu Items */}
+                    <button
+                      onClick={() => {
+                        navigate('/profile');
+                        setProfileDropdownOpen(false);
+                      }}
+                      className="w-full px-4 py-3 text-left text-gray-300 hover:bg-green-900/30 hover:text-green-400 transition text-sm"
+                    >
+                      Profile
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        logout();
+                        setProfileDropdownOpen(false);
+                      }}
+                      className="w-full px-4 py-3 text-left text-red-400 hover:bg-red-900/30 transition border-t border-green-500/30 text-sm"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="lg:hidden flex items-center gap-2">
+          <div className="md:hidden flex items-center gap-2">
             <NotificationCenter />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -92,56 +130,59 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden pb-4 overflow-hidden"
+        {mobileMenuOpen && (
+          <div className="md:hidden pb-4 space-y-2">
+            <button
+              onClick={() => {
+                navigate('/leaderboard');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-3 bg-gray-800 text-green-400 rounded-lg hover:bg-green-900/30 transition text-sm"
             >
-              {/* Mobile Stats */}
-              <div className="flex flex-wrap gap-2 mb-3">
-                <div className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 px-3 py-1 rounded-full border border-green-500/50">
-                  <span className="text-green-400 text-xs font-semibold">⭐ Lvl {user.level}</span>
-                </div>
-                <div className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 px-3 py-1 rounded-full border border-green-500/50">
-                  <span className="text-green-400 text-xs font-semibold">🎮 {user.elo || 1000}</span>
-                </div>
-                <div className="bg-gradient-to-r from-yellow-900/50 to-amber-900/50 px-3 py-1 rounded-full border border-yellow-500/50">
-                  <span className="text-yellow-400 text-xs font-bold">🪙 {user.coins || 0}</span>
-                </div>
-              </div>
-
-              {/* Mobile Nav Items */}
-              <div className="space-y-2">
-                {navItems.map((item) => (
-                  <button
-                    key={item.path}
-                    onClick={() => {
-                      navigate(item.path);
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 bg-gradient-to-r from-gray-900 to-gray-800 text-green-400 px-4 py-3 rounded-lg hover:from-green-900 hover:to-emerald-900 transition border border-green-500/30"
-                  >
-                    <span className="text-xl">{item.icon}</span>
-                    <span className="text-sm font-medium">{item.name}</span>
-                  </button>
-                ))}
-                <button
-                  onClick={() => {
-                    logout();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 bg-gradient-to-r from-red-900 to-red-800 text-red-300 px-4 py-3 rounded-lg hover:from-red-800 hover:to-red-700 transition border border-red-500/50"
-                >
-                  <span className="text-xl">🚪</span>
-                  <span className="text-sm font-medium">Logout</span>
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              Leaderboard
+            </button>
+            
+            <button
+              onClick={() => {
+                navigate('/achievements');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-3 bg-gray-800 text-green-400 rounded-lg hover:bg-green-900/30 transition text-sm"
+            >
+              Achievements
+            </button>
+            
+            <button
+              onClick={() => {
+                navigate('/friends');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-3 bg-gray-800 text-green-400 rounded-lg hover:bg-green-900/30 transition text-sm"
+            >
+              Friends
+            </button>
+            
+            <button
+              onClick={() => {
+                navigate('/profile');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-green-900/30 transition text-sm"
+            >
+              Profile
+            </button>
+            
+            <button
+              onClick={() => {
+                logout();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-3 bg-red-900 text-red-300 rounded-lg hover:bg-red-800 transition text-sm"
+            >
+              Logout
+            </button>
+          </div>
+        )}
       </div>
     </nav>
   );

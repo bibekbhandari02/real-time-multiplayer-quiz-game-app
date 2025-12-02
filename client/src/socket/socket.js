@@ -14,10 +14,18 @@ export const initSocket = (userId, username) => {
     socket.on('connect', () => {
       console.log('✅ Socket connected');
       socket.emit('authenticate', { userId, username });
+      // Announce user is online
+      socket.emit('user_connected', { userId });
     });
 
     socket.on('disconnect', () => {
       console.log('❌ Socket disconnected');
+    });
+
+    socket.on('reconnect', () => {
+      console.log('🔄 Socket reconnected');
+      socket.emit('authenticate', { userId, username });
+      socket.emit('user_connected', { userId });
     });
   }
   return socket;

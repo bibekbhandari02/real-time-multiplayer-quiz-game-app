@@ -11,6 +11,7 @@ export default function Lobby() {
   const [generating, setGenerating] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [friends, setFriends] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState(new Set());
   const { user, token } = useAuthStore();
   const navigate = useNavigate();
   const hasJoinedRef = useRef(false);
@@ -57,6 +58,23 @@ export default function Lobby() {
       navigate('/');
     });
 
+    // Listen for online status updates
+    socket.on('user_online', (data) => {
+      setOnlineUsers(prev => new Set([...prev, data.userId]));
+    });
+
+    socket.on('user_offline', (data) => {
+      setOnlineUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(data.userId);
+        return newSet;
+      });
+    });
+
+    socket.on('online_friends_list', (data) => {
+      setOnlineUsers(new Set(data.onlineUserIds || []));
+    });
+
     return () => {
       socket.off('room_joined');
       socket.off('player_joined');
@@ -64,6 +82,9 @@ export default function Lobby() {
       socket.off('generating_questions');
       socket.off('game_started');
       socket.off('error');
+      socket.off('user_online');
+      socket.off('user_offline');
+      socket.off('online_friends_list');
     };
   }, [roomCode, user.id, user.username, socket, navigate]);
 
@@ -84,6 +105,12 @@ export default function Lobby() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFriends(data || []);
+      
+      // Request online status for these friends
+      if (socket && data && data.length > 0) {
+        const friendIds = data.map(f => f._id);
+        socket.emit('get_online_friends', { friendIds });
+      }
     } catch (error) {
       console.error('Failed to fetch friends:', error);
       setFriends([]);
@@ -209,53 +236,67 @@ export default function Lobby() {
 
         {/* Invite Friends Modal */}
         {showInviteModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               className="bg-gradient-to-br from-gray-900 to-black rounded-2xl p-6 max-w-md w-full shadow-2xl border-2 border-green-500/50"
             >
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">Invite Friends</h2>
+                <h2 className="text-2xl font-bold text-green-400">Invite Friends</h2>
                 <button
                   onClick={() => setShowInviteModal(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className="text-gray-400 hover:text-green-400 text-2xl"
                 >
                   ×
                 </button>
               </div>
 
-              <p className="text-sm text-gray-600 mb-4">
-                Send room code <span className="font-bold text-primary">{roomCode}</span> to your friends
+              <p className="text-sm text-gray-400 mb-4">
+                Send room code <span className="font-bold text-green-400">{roomCode}</span> to your friends
               </p>
 
               {friends.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">No friends yet</p>
+                  <p className="text-gray-400 mb-4">No friends yet</p>
                   <button
                     onClick={() => {
                       setShowInviteModal(false);
                       navigate('/friends');
                     }}
-                    className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition"
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-500 hover:to-emerald-500 transition shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                   >
                     Add Friends
                   </button>
                 </div>
               ) : (
-                <div className="space-y-2 max-h-96 overflow-y-auto">
+                <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-gray-800">
                   {friends.map((friend) => (
                     <div
                       key={friend._id}
-                      className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                      className="flex justify-between items-center p-3 bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg hover:from-gray-700 hover:to-gray-800 transition border border-green-500/20"
                     >
-                      <div>
-                        <p className="font-semibold">{friend.username}</p>
-                        <p className="text-xs text-gray-600">{friend.elo} ELO</p>
+                      <div className="flex items-center gap-2 flex-1">
+                        {/* Active Status Indicator */}
+                        <div className="relative flex-shrink-0">
+                          <div className={`w-2 h-2 rounded-full ${
+                            onlineUsers.has(friend._id)
+                              ? 'bg-green-400 shadow-[0_0_8px_rgba(34,197,94,0.8)]'
+                              : 'bg-gray-600'
+                          }`}>
+                            {onlineUsers.has(friend._id) && (
+                              <span className="absolute inset-0 w-2 h-2 bg-green-400 rounded-full animate-ping opacity-75"></span>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-green-400">{friend.username}</p>
+                          <p className="text-xs text-gray-400">{friend.elo} ELO</p>
+                        </div>
                       </div>
                       <button
                         onClick={() => inviteFriend(friend)}
-                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition text-sm"
+                        className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-500 hover:to-emerald-500 transition text-sm shadow-[0_0_10px_rgba(16,185,129,0.3)]"
                       >
                         Invite
                       </button>
@@ -266,7 +307,7 @@ export default function Lobby() {
 
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="w-full mt-4 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
+                className="w-full mt-4 bg-gradient-to-r from-gray-800 to-gray-700 text-gray-300 px-4 py-2 rounded-lg hover:from-gray-700 hover:to-gray-600 transition border border-gray-600"
               >
                 Close
               </button>

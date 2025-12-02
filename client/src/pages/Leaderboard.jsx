@@ -38,9 +38,9 @@ export default function Leaderboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-2xl"
+          className="bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-4 md:p-8 shadow-2xl border-2 border-green-500/50"
         >
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">Global Leaderboard</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-green-400">🏆 Global Leaderboard</h2>
           
           <div className="flex gap-2 mb-4 md:mb-6 overflow-x-auto pb-2">
             <button 
@@ -96,8 +96,8 @@ export default function Leaderboard() {
                     transition={{ delay: index * 0.05 }}
                     className={`flex justify-between items-center p-3 md:p-4 rounded-lg ${
                       rank <= 3 
-                        ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300' 
-                        : 'bg-gray-50 hover:bg-gray-100'
+                        ? 'bg-gradient-to-r from-yellow-900/50 to-amber-900/50 border-2 border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.3)]' 
+                        : 'bg-gradient-to-r from-gray-800 to-gray-900 border border-green-500/20 hover:border-green-500/40'
                     } transition`}
                   >
                     <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
@@ -105,8 +105,8 @@ export default function Leaderboard() {
                         {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="font-bold text-base md:text-lg truncate">{player.username}</p>
-                        <p className="text-xs md:text-sm text-gray-600">
+                        <p className={`font-bold text-base md:text-lg truncate ${rank <= 3 ? 'text-yellow-400' : 'text-green-400'}`}>{player.username}</p>
+                        <p className="text-xs md:text-sm text-gray-400">
                           {player.stats?.gamesPlayed || 0} games
                         </p>
                       </div>
@@ -114,14 +114,14 @@ export default function Leaderboard() {
                     <div className="text-right flex-shrink-0">
                       {sortBy === 'elo' && (
                         <>
-                          <p className="font-bold text-xl text-primary">{player.elo || 1000}</p>
-                          <p className="text-sm text-gray-600">{player.stats?.gamesWon || 0} wins</p>
+                          <p className="font-bold text-xl text-green-400">{player.elo || 1000}</p>
+                          <p className="text-sm text-gray-400">{player.stats?.gamesWon || 0} wins</p>
                         </>
                       )}
                       {sortBy === 'wins' && (
                         <>
-                          <p className="font-bold text-xl text-green-600">{player.stats?.gamesWon || 0} wins</p>
-                          <p className="text-sm text-gray-600">
+                          <p className="font-bold text-xl text-green-400">{player.stats?.gamesWon || 0} wins</p>
+                          <p className="text-sm text-gray-400">
                             {player.stats?.gamesPlayed > 0 
                               ? ((player.stats.gamesWon / player.stats.gamesPlayed) * 100).toFixed(1)
                               : 0}% win rate

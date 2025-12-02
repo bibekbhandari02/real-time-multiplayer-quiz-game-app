@@ -100,19 +100,22 @@ export default function Matchmaking() {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-xl md:rounded-2xl p-6 md:p-8 shadow-2xl max-w-md w-full"
+        className="bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-6 md:p-8 shadow-2xl max-w-md w-full border-2 border-green-500/50"
       >
-        <h1 className="text-2xl md:text-3xl font-bold text-center mb-4 md:mb-6">Ranked Matchmaking</h1>
+        <div className="text-center mb-4 md:mb-6">
+          <div className="text-5xl mb-3 filter drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]">⚔️</div>
+          <h1 className="text-2xl md:text-3xl font-bold text-green-400">Ranked Matchmaking</h1>
+        </div>
 
         {queueStatus && (
-          <div className="bg-gray-100 rounded-lg p-3 md:p-4 mb-4 md:mb-6">
+          <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg p-3 md:p-4 mb-4 md:mb-6 border border-green-500/30">
             <div className="flex justify-between mb-2 text-sm md:text-base">
-              <span className="text-gray-600">Players in Queue:</span>
-              <span className="font-bold">{queueStatus.playersInQueue}</span>
+              <span className="text-gray-400">Players in Queue:</span>
+              <span className="font-bold text-green-400">{queueStatus.playersInQueue}</span>
             </div>
             <div className="flex justify-between text-sm md:text-base">
-              <span className="text-gray-600">Avg Wait Time:</span>
-              <span className="font-bold">{queueStatus.averageWaitTime}s</span>
+              <span className="text-gray-400">Avg Wait Time:</span>
+              <span className="font-bold text-green-400">{queueStatus.averageWaitTime}s</span>
             </div>
           </div>
         )}
@@ -122,22 +125,22 @@ export default function Matchmaking() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={startMatchmaking}
-            className="w-full bg-gradient-to-r from-primary to-secondary text-white py-4 rounded-lg font-bold text-lg shadow-lg"
+            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-lg font-bold text-lg shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] transition"
           >
-            Find Match
+            🎮 Find Match
           </motion.button>
         ) : (
           <div className="text-center">
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"
+              className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-4 shadow-[0_0_20px_rgba(16,185,129,0.5)]"
             />
-            <p className="text-xl font-semibold mb-2">Searching for opponents...</p>
-            <p className="text-gray-600 mb-6">Wait time: {waitTime}s</p>
+            <p className="text-xl font-semibold mb-2 text-green-400">Searching for opponents...</p>
+            <p className="text-gray-400 mb-6">Wait time: <span className="text-green-400 font-bold">{waitTime}s</span></p>
             <button
               onClick={cancelMatchmaking}
-              className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition"
+              className="bg-gradient-to-r from-red-900 to-red-800 text-red-300 px-6 py-2 rounded-lg hover:from-red-800 hover:to-red-700 transition border border-red-500/50"
             >
               Cancel
             </button>
@@ -146,9 +149,9 @@ export default function Matchmaking() {
 
         <button
           onClick={() => navigate('/')}
-          className="w-full mt-4 text-gray-600 hover:text-gray-800 transition"
+          className="w-full mt-4 text-gray-400 hover:text-green-400 transition"
         >
-          Back to Home
+          ← Back to Home
         </button>
       </motion.div>
     </div>

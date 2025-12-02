@@ -48,28 +48,28 @@ export default function Achievements() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-2xl"
+          className="bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-4 md:p-8 shadow-2xl border-2 border-green-500/50"
         >
-          <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">🏆 Achievements</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-green-400">🏆 Achievements</h1>
 
           <div className={`mb-6 md:mb-8 p-4 md:p-6 rounded-xl border-2 ${
             progress === '100' 
-              ? 'bg-gradient-to-r from-yellow-50 via-orange-50 to-yellow-50 border-yellow-400' 
-              : 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200'
+              ? 'bg-gradient-to-r from-yellow-900/50 via-amber-900/50 to-yellow-900/50 border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.3)]' 
+              : 'bg-gradient-to-r from-gray-800 to-gray-900 border-green-500/30'
           }`}>
             <div className="flex justify-between items-center mb-3">
-              <span className="font-semibold text-base md:text-lg">Your Progress</span>
-              <span className="font-bold text-primary text-lg md:text-xl">{unlockedCount}/{achievements.length}</span>
+              <span className="font-semibold text-base md:text-lg text-green-400">Your Progress</span>
+              <span className="font-bold text-green-400 text-lg md:text-xl">{unlockedCount}/{achievements.length}</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-4">
+            <div className="w-full bg-gray-700 rounded-full h-4">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 1 }}
                 className={`h-4 rounded-full ${
                   progress === '100'
-                    ? 'bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400'
-                    : 'bg-gradient-to-r from-primary to-secondary'
+                    ? 'bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.5)]'
+                    : 'bg-gradient-to-r from-green-600 to-emerald-600 shadow-[0_0_10px_rgba(16,185,129,0.5)]'
                 }`}
               />
             </div>
@@ -79,18 +79,18 @@ export default function Achievements() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="mt-3 text-center"
               >
-                <p className="text-lg font-bold text-yellow-700">🎉 Perfect! All Achievements Unlocked! 🎉</p>
-                <p className="text-sm text-gray-600 mt-1">You're a true TriviaNova Champion!</p>
+                <p className="text-lg font-bold text-yellow-400">🎉 Perfect! All Achievements Unlocked! 🎉</p>
+                <p className="text-sm text-gray-400 mt-1">You're a true TriviaNova Champion!</p>
               </motion.div>
             ) : (
-              <p className="text-sm text-gray-600 mt-2">{progress}% Complete - Keep playing to unlock more!</p>
+              <p className="text-sm text-gray-400 mt-2">{progress}% Complete - Keep playing to unlock more!</p>
             )}
           </div>
 
           {loading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="text-gray-500 mt-4">Loading achievements...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+              <p className="text-gray-400 mt-4">Loading achievements...</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -102,21 +102,21 @@ export default function Achievements() {
                   transition={{ delay: index * 0.05 }}
                   className={`p-6 rounded-xl border-2 transition-all ${
                     achievement.unlocked
-                      ? 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-400 shadow-lg'
-                      : 'bg-gray-50 border-gray-200 opacity-70 hover:opacity-90'
+                      ? 'bg-gradient-to-br from-yellow-900/50 to-amber-900/50 border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.3)]'
+                      : 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 opacity-70 hover:opacity-90 hover:border-gray-600'
                   }`}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="text-5xl">{achievement.icon}</div>
+                    <div className={`text-5xl ${achievement.unlocked ? 'filter drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]' : 'grayscale'}`}>{achievement.icon}</div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-lg mb-1">{achievement.name}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{achievement.description}</p>
+                      <h3 className={`font-bold text-lg mb-1 ${achievement.unlocked ? 'text-yellow-400' : 'text-gray-400'}`}>{achievement.name}</h3>
+                      <p className={`text-sm mb-2 ${achievement.unlocked ? 'text-gray-300' : 'text-gray-500'}`}>{achievement.description}</p>
                       {achievement.unlocked ? (
-                        <div className="mt-2 inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+                        <div className="mt-2 inline-block px-3 py-1 bg-green-900/50 text-green-400 rounded-full text-xs font-bold border border-green-500/50">
                           ✓ UNLOCKED
                         </div>
                       ) : (
-                        <div className="mt-2 inline-block px-3 py-1 bg-gray-200 text-gray-500 rounded-full text-xs font-semibold">
+                        <div className="mt-2 inline-block px-3 py-1 bg-gray-700 text-gray-400 rounded-full text-xs font-semibold border border-gray-600">
                           🔒 LOCKED
                         </div>
                       )}

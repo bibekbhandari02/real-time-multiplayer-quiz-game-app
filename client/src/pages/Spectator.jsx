@@ -171,24 +171,24 @@ export default function Spectator() {
     <div className="min-h-screen p-4 pb-20">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 mb-4 flex justify-between items-center">
+        <div className="bg-gradient-to-r from-gray-900 to-black backdrop-blur-md rounded-xl p-4 mb-4 flex justify-between items-center border-2 border-green-500/50">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-2xl">👁️</span>
-              <h1 className="text-white text-xl font-bold">Spectator Mode</h1>
+              <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">👁️</span>
+              <h1 className="text-green-400 text-xl font-bold">Spectator Mode</h1>
             </div>
-            <p className="text-white/70 text-sm">Room: {roomCode}</p>
+            <p className="text-gray-400 text-sm">Room: {roomCode}</p>
           </div>
           <div className="text-right">
-            <p className="text-white/70 text-sm">Spectators</p>
-            <p className="text-white text-2xl font-bold">{spectatorCount}</p>
+            <p className="text-gray-400 text-sm">Spectators</p>
+            <p className="text-green-400 text-2xl font-bold">{spectatorCount}</p>
           </div>
         </div>
 
         {/* Game Status */}
-        <div className="bg-white rounded-xl p-6 mb-4">
+        <div className="bg-gradient-to-br from-gray-900 to-black rounded-xl p-6 mb-4 border-2 border-green-500/50">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">
+            <h2 className="text-xl font-bold text-green-400">
               {gameState?.status === 'waiting' && '⏳ Waiting for game to start...'}
               {gameState?.status === 'playing' && '🎮 Game in Progress'}
               {gameState?.status === 'finished' && '🏁 Game Finished'}
@@ -202,46 +202,46 @@ export default function Spectator() {
 
           {/* Current Question (if playing) */}
           {gameState?.status === 'playing' && currentQuestion && (
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg mb-6 border-2 border-blue-200">
+            <div className="bg-gradient-to-r from-gray-800 to-gray-900 p-6 rounded-lg mb-6 border-2 border-cyan-500/50">
               <div className="flex justify-between items-center mb-4">
-                <p className="text-lg font-semibold flex-1">{currentQuestion.question}</p>
+                <p className="text-lg font-semibold flex-1 text-cyan-400">{currentQuestion.question}</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {currentQuestion.options.map((option, index) => (
                   <div
                     key={index}
-                    className="bg-white p-3 rounded-lg border-2 border-gray-200 hover:border-blue-400 transition"
+                    className="bg-gray-900 p-3 rounded-lg border-2 border-green-500/30 hover:border-green-400 transition text-gray-300"
                   >
-                    <span className="font-bold mr-2 text-primary">{String.fromCharCode(65 + index)}.</span>
+                    <span className="font-bold mr-2 text-green-400">{String.fromCharCode(65 + index)}.</span>
                     {option}
                   </div>
                 ))}
               </div>
-              <div className="mt-4 text-sm text-gray-600 text-center">
+              <div className="mt-4 text-sm text-gray-400 text-center">
                 <p>⏱️ Players are answering...</p>
               </div>
             </div>
           )}
 
           {gameState?.status === 'playing' && !currentQuestion && (
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 text-center mb-6">
+            <div className="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border-2 border-cyan-500/50 rounded-lg p-6 text-center mb-6">
               <div className="animate-pulse">
-                <p className="text-lg font-semibold text-blue-800">⏳ Waiting for next question...</p>
+                <p className="text-lg font-semibold text-cyan-400">⏳ Waiting for next question...</p>
               </div>
             </div>
           )}
 
           {gameState?.status === 'waiting' && (
-            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6 text-center">
-              <p className="text-lg font-semibold text-yellow-800">⏳ Game hasn't started yet</p>
-              <p className="text-sm text-yellow-600 mt-2">Waiting for the host to start the game...</p>
+            <div className="bg-gradient-to-r from-yellow-900/30 to-amber-900/30 border-2 border-yellow-500/50 rounded-lg p-6 text-center">
+              <p className="text-lg font-semibold text-yellow-400">⏳ Game hasn't started yet</p>
+              <p className="text-sm text-yellow-500 mt-2">Waiting for the host to start the game...</p>
             </div>
           )}
         </div>
 
         {/* Leaderboard */}
-        <div className="bg-white rounded-xl p-6">
-          <h2 className="text-xl font-bold mb-4">🏆 Live Leaderboard</h2>
+        <div className="bg-gradient-to-br from-gray-900 to-black rounded-xl p-6 border-2 border-green-500/50">
+          <h2 className="text-xl font-bold mb-4 text-green-400">🏆 Live Leaderboard</h2>
           <div className="space-y-2">
             {players
               .sort((a, b) => b.score - a.score)
@@ -294,7 +294,7 @@ export default function Spectator() {
         <div className="mt-4">
           <button
             onClick={() => navigate('/')}
-            className="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition font-semibold"
+            className="w-full bg-gradient-to-r from-red-900 to-red-800 text-red-300 py-3 rounded-lg hover:from-red-800 hover:to-red-700 transition font-semibold border border-red-500/50"
           >
             Leave Spectator Mode
           </button>

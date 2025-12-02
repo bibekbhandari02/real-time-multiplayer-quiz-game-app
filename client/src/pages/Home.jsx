@@ -107,14 +107,14 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl"
+            className="bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl border-2 border-green-500/30 hover:border-green-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all"
           >
-            <div className="text-4xl mb-3">🎮</div>
-            <h2 className="text-xl md:text-2xl font-bold mb-2">Create Room</h2>
-            <p className="text-gray-600 text-sm md:text-base mb-4 md:mb-6">Start a new quiz game and invite friends</p>
+            <div className="text-4xl mb-3 filter drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">🎮</div>
+            <h2 className="text-xl md:text-2xl font-bold mb-2 text-green-400">Create Room</h2>
+            <p className="text-gray-400 text-sm md:text-base mb-4 md:mb-6">Start a new quiz game and invite friends</p>
             <button
               onClick={() => setShowSettings(true)}
-              className="w-full bg-primary text-white py-3 md:py-3 rounded-lg font-semibold hover:bg-primary/90 transition text-sm md:text-base"
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 md:py-3 rounded-lg font-semibold hover:from-green-500 hover:to-emerald-500 transition shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] text-sm md:text-base"
             >
               Create New Room
             </button>
@@ -124,28 +124,28 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl"
+            className="bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl border-2 border-green-500/30 hover:border-green-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all"
           >
-            <div className="text-4xl mb-3">🚪</div>
-            <h2 className="text-xl md:text-2xl font-bold mb-2">Join Room</h2>
-            <p className="text-gray-600 text-sm md:text-base mb-4 md:mb-6">Enter a room code to join an existing game</p>
+            <div className="text-4xl mb-3 filter drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">🚪</div>
+            <h2 className="text-xl md:text-2xl font-bold mb-2 text-green-400">Join Room</h2>
+            <p className="text-gray-400 text-sm md:text-base mb-4 md:mb-6">Enter a room code to join an existing game</p>
             <input
               type="text"
               value={roomCode}
               onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
               placeholder="Enter room code"
               maxLength={6}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-primary focus:border-primary text-center text-lg font-bold tracking-wider"
+              className="w-full px-4 py-3 bg-gray-800 border-2 border-green-500/50 text-green-400 rounded-lg mb-3 focus:ring-2 focus:ring-green-500 focus:border-green-400 text-center text-lg font-bold tracking-wider placeholder-gray-600"
             />
             <button
               onClick={joinRoom}
-              className="w-full bg-secondary text-white py-3 rounded-lg font-semibold hover:bg-secondary/90 transition text-sm md:text-base"
+              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-emerald-500 hover:to-green-500 transition shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] text-sm md:text-base"
             >
               Join Room
             </button>
             <button
               onClick={() => roomCode.trim() && navigate(`/spectator/${roomCode.toUpperCase()}`)}
-              className="w-full mt-2 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition text-sm"
+              className="w-full mt-2 bg-gradient-to-r from-gray-800 to-gray-700 text-gray-300 py-2 rounded-lg font-semibold hover:from-gray-700 hover:to-gray-600 transition border border-gray-600 text-sm"
             >
               👁️ Spectate Instead
             </button>
@@ -155,14 +155,14 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl"
+            className="bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl border-2 border-green-500/30 hover:border-green-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all"
           >
-            <div className="text-4xl mb-3">⚔️</div>
-            <h2 className="text-xl md:text-2xl font-bold mb-2">Ranked Match</h2>
-            <p className="text-gray-600 text-sm md:text-base mb-4 md:mb-6">Compete with players at your skill level</p>
+            <div className="text-4xl mb-3 filter drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">⚔️</div>
+            <h2 className="text-xl md:text-2xl font-bold mb-2 text-green-400">Ranked Match</h2>
+            <p className="text-gray-400 text-sm md:text-base mb-4 md:mb-6">Compete with players at your skill level</p>
             <button
               onClick={() => navigate('/matchmaking')}
-              className="w-full bg-gradient-to-r from-accent to-secondary text-white py-3 rounded-lg font-semibold hover:opacity-90 transition text-sm md:text-base"
+              className="w-full bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white py-3 rounded-lg font-semibold hover:from-green-500 hover:via-emerald-500 hover:to-teal-500 transition shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] text-sm md:text-base"
             >
               Find Match
             </button>
@@ -174,59 +174,59 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mt-4 md:mt-8 bg-white rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl"
+          className="mt-4 md:mt-8 bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl border-2 border-green-500/30"
         >
-          <h2 className="text-xl md:text-2xl font-bold mb-4">Your Stats</h2>
+          <h2 className="text-xl md:text-2xl font-bold mb-4 text-green-400">Your Stats</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 md:p-4 rounded-lg text-center border border-blue-200">
-              <p className="text-2xl md:text-3xl font-bold text-blue-600">{user.stats?.gamesPlayed || 0}</p>
-              <p className="text-gray-700 font-semibold text-xs md:text-sm mt-1">Games Played</p>
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-3 md:p-4 rounded-lg text-center border-2 border-cyan-500/50 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition">
+              <p className="text-2xl md:text-3xl font-bold text-cyan-400">{user.stats?.gamesPlayed || 0}</p>
+              <p className="text-gray-400 font-semibold text-xs md:text-sm mt-1">Games Played</p>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-3 md:p-4 rounded-lg text-center border border-green-200">
-              <p className="text-2xl md:text-3xl font-bold text-green-600">{user.stats?.gamesWon || 0}</p>
-              <p className="text-gray-700 font-semibold text-xs md:text-sm mt-1">Wins</p>
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-3 md:p-4 rounded-lg text-center border-2 border-green-500/50 hover:border-green-400 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition">
+              <p className="text-2xl md:text-3xl font-bold text-green-400">{user.stats?.gamesWon || 0}</p>
+              <p className="text-gray-400 font-semibold text-xs md:text-sm mt-1">Wins</p>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-3 md:p-4 rounded-lg text-center border border-purple-200">
-              <p className="text-2xl md:text-3xl font-bold text-purple-600">
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-3 md:p-4 rounded-lg text-center border-2 border-purple-500/50 hover:border-purple-400 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition">
+              <p className="text-2xl md:text-3xl font-bold text-purple-400">
                 {user.stats?.gamesPlayed > 0 
                   ? ((user.stats.gamesWon / user.stats.gamesPlayed) * 100).toFixed(1)
                   : 0}%
               </p>
-              <p className="text-gray-700 font-semibold text-xs md:text-sm mt-1">Win Rate</p>
+              <p className="text-gray-400 font-semibold text-xs md:text-sm mt-1">Win Rate</p>
             </div>
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-3 md:p-4 rounded-lg text-center border border-orange-200">
-              <p className="text-2xl md:text-3xl font-bold text-orange-600">{user.stats?.accuracy?.toFixed(1) || 0}%</p>
-              <p className="text-gray-700 font-semibold text-xs md:text-sm mt-1">Accuracy</p>
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-3 md:p-4 rounded-lg text-center border-2 border-orange-500/50 hover:border-orange-400 hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] transition">
+              <p className="text-2xl md:text-3xl font-bold text-orange-400">{user.stats?.accuracy?.toFixed(1) || 0}%</p>
+              <p className="text-gray-400 font-semibold text-xs md:text-sm mt-1">Accuracy</p>
             </div>
           </div>
           
           <div className="mt-4 flex justify-center">
-            <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 px-6 py-3 rounded-lg border-2 border-yellow-300">
-              <p className="text-xs md:text-sm text-gray-600 font-semibold">ELO Rating</p>
-              <p className="text-xl md:text-2xl font-bold text-yellow-700">{user.elo || 1000}</p>
+            <div className="bg-gradient-to-r from-yellow-900/50 to-amber-900/50 px-6 py-3 rounded-lg border-2 border-yellow-500/50 hover:border-yellow-400 hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition">
+              <p className="text-xs md:text-sm text-gray-400 font-semibold">ELO Rating</p>
+              <p className="text-xl md:text-2xl font-bold text-yellow-400">{user.elo || 1000}</p>
             </div>
           </div>
         </motion.div>
 
         {/* Room Settings Modal */}
         {showSettings && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
+              className="bg-gradient-to-br from-gray-900 to-black rounded-2xl p-8 max-w-md w-full shadow-2xl border-2 border-green-500/50"
             >
-              <h2 className="text-2xl font-bold mb-6">Room Settings</h2>
+              <h2 className="text-2xl font-bold mb-6 text-green-400">⚙️ Room Settings</h2>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-green-400 mb-2">
                     Category
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-4 py-2 bg-gray-800 border-2 border-green-500/50 text-green-400 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-400"
                   >
                     <option value="General Knowledge">General Knowledge</option>
                     <option value="Science">Science</option>
@@ -261,8 +261,8 @@ export default function Home() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Number of Questions: {questionsCount}
+                  <label className="block text-sm font-semibold text-green-400 mb-2">
+                    Number of Questions: <span className="text-green-300">{questionsCount}</span>
                   </label>
                   <input
                     type="range"
@@ -270,13 +270,13 @@ export default function Home() {
                     max="20"
                     value={questionsCount}
                     onChange={(e) => setQuestionsCount(parseInt(e.target.value))}
-                    className="w-full"
+                    className="w-full accent-green-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Time per Question: {timePerQuestion}s
+                  <label className="block text-sm font-semibold text-green-400 mb-2">
+                    Time per Question: <span className="text-green-300">{timePerQuestion}s</span>
                   </label>
                   <input
                     type="range"
@@ -284,7 +284,7 @@ export default function Home() {
                     max="30"
                     value={timePerQuestion}
                     onChange={(e) => setTimePerQuestion(parseInt(e.target.value))}
-                    className="w-full"
+                    className="w-full accent-green-500"
                   />
                 </div>
               </div>
@@ -292,13 +292,13 @@ export default function Home() {
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => setShowSettings(false)}
-                  className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
+                  className="flex-1 bg-gradient-to-r from-gray-800 to-gray-700 text-gray-300 py-3 rounded-lg font-semibold hover:from-gray-700 hover:to-gray-600 transition border border-gray-600"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={createRoom}
-                  className="flex-1 bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition"
+                  className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-lg font-semibold hover:from-green-500 hover:to-emerald-500 transition shadow-[0_0_20px_rgba(16,185,129,0.4)]"
                 >
                   Create Room
                 </button>

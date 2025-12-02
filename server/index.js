@@ -6,7 +6,6 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { connectDB } from './config/database.js';
 import { connectRedis } from './config/redis.js';
-import { seedQuestions } from './services/seedData.js';
 import authRoutes from './routes/auth.js';
 import quizRoutes from './routes/quiz.js';
 import adminRoutes from './routes/admin.js';
@@ -53,7 +52,6 @@ setupSocketHandlers(io);
 // Database connections
 await connectDB();
 await connectRedis();
-await seedQuestions();
 
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {

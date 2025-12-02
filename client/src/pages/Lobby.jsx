@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
@@ -8,18 +8,26 @@ export default function Lobby() {
   const { roomCode } = useParams();
   const [room, setRoom] = useState(null);
   const [players, setPlayers] = useState([]);
-  const { user } = useAuthStore();
+  const [generating, setGenerating] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [friends, setFriends] = useState([]);
+  const { user, token } = useAuthStore();
   const navigate = useNavigate();
+  const hasJoinedRef = useRef(false);
   
   // Initialize socket if not already initialized
   const socket = getSocket() || initSocket(user.id, user.username);
 
   useEffect(() => {
-    socket.emit('join_room', {
-      roomCode,
-      userId: user.id,
-      username: user.username
-    });
+    // Only join once
+    if (!hasJoinedRef.current) {
+      socket.emit('join_room', {
+        roomCode,
+        userId: user.id,
+        username: user.username
+      });
+      hasJoinedRef.current = true;
+    }
 
     socket.on('room_joined', ({ room }) => {
       setRoom(room);
@@ -34,11 +42,17 @@ export default function Lobby() {
       setPlayers(players);
     });
 
+    socket.on('generating_questions', ({ message }) => {
+      setGenerating(true);
+    });
+
     socket.on('game_started', () => {
+      setGenerating(false);
       navigate(`/game/${roomCode}`);
     });
 
     socket.on('error', ({ message }) => {
+      setGenerating(false);
       alert(message);
       navigate('/');
     });
@@ -47,10 +61,11 @@ export default function Lobby() {
       socket.off('room_joined');
       socket.off('player_joined');
       socket.off('player_left');
+      socket.off('generating_questions');
       socket.off('game_started');
       socket.off('error');
     };
-  }, [roomCode, user, socket, navigate]);
+  }, [roomCode, user.id, user.username, socket, navigate]);
 
   const startGame = () => {
     socket.emit('start_game', { roomCode, userId: user.id });
@@ -59,6 +74,37 @@ export default function Lobby() {
   const leaveRoom = () => {
     socket.emit('leave_room', { roomCode, userId: user.id });
     navigate('/');
+  };
+
+  const fetchFriends = async () => {
+    try {
+      if (!token) return;
+      const axios = (await import('axios')).default;
+      const { data } = await axios.get('/api/social/friends', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setFriends(data || []);
+    } catch (error) {
+      console.error('Failed to fetch friends:', error);
+      setFriends([]);
+    }
+  };
+
+  const inviteFriend = (friend) => {
+    if (!socket) return;
+    
+    socket.emit('invite_to_room', {
+      friendId: friend._id,
+      roomCode: roomCode,
+      fromUsername: user.username
+    });
+    
+    alert(`Invite sent to ${friend.username}!`);
+  };
+
+  const openInviteModal = () => {
+    fetchFriends();
+    setShowInviteModal(true);
   };
 
   if (!room) return <div className="min-h-screen flex items-center justify-center text-white text-2xl">Loading...</div>;
@@ -78,12 +124,20 @@ export default function Lobby() {
               <h1 className="text-3xl font-bold">Room: {roomCode}</h1>
               <p className="text-gray-600">Waiting for players...</p>
             </div>
-            <button
-              onClick={leaveRoom}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-            >
-              Leave
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={openInviteModal}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition flex items-center gap-2"
+              >
+                <span>👥</span> Invite Friends
+              </button>
+              <button
+                onClick={leaveRoom}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+              >
+                Leave
+              </button>
+            </div>
           </div>
 
           <div className="mb-6">
@@ -91,7 +145,7 @@ export default function Lobby() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {players.map((player, index) => (
                 <motion.div
-                  key={player.userId}
+                  key={`${player.userId}-${index}`}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
@@ -108,11 +162,25 @@ export default function Lobby() {
 
           <div className="bg-gray-100 p-4 rounded-lg mb-6">
             <h3 className="font-bold mb-2">Game Settings</h3>
+            {room.settings.category && (
+              <p>Category: <span className="font-semibold text-primary">{room.settings.category}</span></p>
+            )}
             <p>Questions: {room.settings.questionsCount}</p>
             <p>Time per question: {room.settings.timePerQuestion}s</p>
           </div>
 
-          {isHost && (
+          {generating && (
+            <div className="bg-blue-100 border-2 border-blue-500 rounded-lg p-4 text-center">
+              <div className="flex items-center justify-center gap-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <p className="text-blue-700 font-semibold">
+                  🤖 AI is generating questions for {room.settings.category}...
+                </p>
+              </div>
+            </div>
+          )}
+
+          {!generating && isHost && (
             <button
               onClick={startGame}
               disabled={players.length < 2}
@@ -122,12 +190,79 @@ export default function Lobby() {
             </button>
           )}
 
-          {!isHost && (
+          {!generating && !isHost && (
             <div className="text-center text-gray-600">
               Waiting for host to start the game...
             </div>
           )}
         </motion.div>
+
+        {/* Invite Friends Modal */}
+        {showInviteModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">Invite Friends</h2>
+                <button
+                  onClick={() => setShowInviteModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              <p className="text-sm text-gray-600 mb-4">
+                Send room code <span className="font-bold text-primary">{roomCode}</span> to your friends
+              </p>
+
+              {friends.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 mb-4">No friends yet</p>
+                  <button
+                    onClick={() => {
+                      setShowInviteModal(false);
+                      navigate('/friends');
+                    }}
+                    className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition"
+                  >
+                    Add Friends
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {friends.map((friend) => (
+                    <div
+                      key={friend._id}
+                      className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                    >
+                      <div>
+                        <p className="font-semibold">{friend.username}</p>
+                        <p className="text-xs text-gray-600">{friend.elo} ELO</p>
+                      </div>
+                      <button
+                        onClick={() => inviteFriend(friend)}
+                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition text-sm"
+                      >
+                        Invite
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                onClick={() => setShowInviteModal(false)}
+                className="w-full mt-4 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
+              >
+                Close
+              </button>
+            </motion.div>
+          </div>
+        )}
       </div>
     </div>
   );

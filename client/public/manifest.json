@@ -1,0 +1,16 @@
+{
+  "name": "Quiz Master - Real-Time Multiplayer Quiz",
+  "short_name": "Quiz Master",
+  "description": "Real-time multiplayer quiz application with AI-powered questions",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

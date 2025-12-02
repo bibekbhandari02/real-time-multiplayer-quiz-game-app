@@ -4,6 +4,7 @@ import User from '../../models/User.js';
 import { calculateScore, updateElo } from '../../utils/scoring.js';
 import { antiCheatDetector } from '../../services/antiCheatService.js';
 import { checkAchievements } from '../../services/achievementService.js';
+import { generateQuestions } from '../../services/aiService.js';
 
 export const handleGameEvents = (socket, io) => {
   socket.on('start_game', async (data) => {
@@ -14,27 +15,57 @@ export const handleGameEvents = (socket, io) => {
         return socket.emit('error', { message: 'Only host can start the game' });
       }
 
-      const questions = await Question.aggregate([
-        { $match: room.settings.category ? { category: room.settings.category } : {} },
-        { $sample: { size: room.settings.questionsCount } }
-      ]);
+      console.log(`🎮 Generating ${room.settings.questionsCount} AI questions for category: ${room.settings.category}`);
+      
+      // Notify players that questions are being generated
+      io.to(data.roomCode).emit('generating_questions', { 
+        message: 'Generating questions with AI...' 
+      });
 
-      room.questions = questions.map(q => q._id);
+      // Generate questions using AI
+      const aiQuestions = await generateQuestions(
+        room.settings.category || 'General Knowledge',
+        'medium',
+        room.settings.questionsCount || 10
+      );
+
+      if (!aiQuestions || aiQuestions.length === 0) {
+        console.error('❌ AI question generation failed');
+        return socket.emit('error', { 
+          message: 'Failed to generate questions. Please check your Gemini API key and try again.' 
+        });
+      } else {
+        // Save AI-generated questions to database
+        console.log(`✅ Generated ${aiQuestions.length} AI questions`);
+        const savedQuestions = await Question.insertMany(
+          aiQuestions.map(q => ({
+            ...q,
+            category: room.settings.category,
+            aiGenerated: true
+          }))
+        );
+        room.questions = savedQuestions.map(q => q._id);
+      }
+
       room.status = 'playing';
       room.startedAt = new Date();
       room.currentQuestion = 0;
       await room.save();
 
+      // Populate questions for sending
+      const populatedRoom = await GameRoom.findById(room._id).populate('questions');
+
       io.to(data.roomCode).emit('game_started', { 
         timestamp: Date.now(),
-        totalQuestions: questions.length
+        totalQuestions: populatedRoom.questions.length
       });
 
       // Send first question
       setTimeout(() => {
-        sendQuestion(io, data.roomCode, questions[0], 0);
+        sendQuestion(io, data.roomCode, populatedRoom.questions[0], 0);
       }, 3000);
     } catch (error) {
+      console.error('Start game error:', error);
       socket.emit('error', { message: error.message });
     }
   });
@@ -42,62 +73,133 @@ export const handleGameEvents = (socket, io) => {
   socket.on('submit_answer', async (data) => {
     try {
       const { roomCode, questionIndex, answer, timeSpent } = data;
-      const room = await GameRoom.findOne({ roomCode }).populate('questions');
       
-      if (!room) return;
+      // First, get the room and question
+      const room = await GameRoom.findOne({ roomCode }).populate('questions');
+      if (!room || !room.questions[questionIndex]) return;
 
       const question = room.questions[questionIndex];
       const isCorrect = question.correctAnswer === answer;
       const score = isCorrect ? calculateScore(timeSpent, room.settings.timePerQuestion) : 0;
+      
+      // Debug logging
+      console.log(`🔍 Answer check - Question: "${question.question.substring(0, 50)}..."`);
+      console.log(`   Correct answer index: ${question.correctAnswer} (type: ${typeof question.correctAnswer})`);
+      console.log(`   Player answer index: ${answer} (type: ${typeof answer})`);
+      console.log(`   Is correct: ${isCorrect}`);
 
-      const player = room.players.find(p => p.userId.toString() === socket.userId);
-      if (player) {
-        player.score += score;
-        player.answers.push({ questionId: question._id, answer, time: timeSpent, correct: isCorrect });
-      }
+      // Use atomic update to avoid version conflicts
+      const updatedRoom = await GameRoom.findOneAndUpdate(
+        { 
+          roomCode,
+          'players.userId': socket.userId,
+          status: 'playing'
+        },
+        {
+          $inc: { 'players.$.score': score },
+          $push: { 
+            'players.$.answers': { 
+              questionId: question._id.toString(),
+              answer, 
+              time: timeSpent, 
+              correct: isCorrect
+            }
+          }
+        },
+        { new: true }
+      );
+
+      if (!updatedRoom) return;
 
       // Track for anti-cheat
       antiCheatDetector.trackAnswer(socket.userId, question._id, answer, timeSpent, isCorrect);
 
-      // Update question stats
-      question.stats.timesAsked++;
-      if (isCorrect) question.stats.correctAnswers++;
-      question.stats.averageTime = 
-        (question.stats.averageTime * (question.stats.timesAsked - 1) + timeSpent) / question.stats.timesAsked;
-      await question.save();
+      // Update question stats atomically
+      await Question.findByIdAndUpdate(question._id, {
+        $inc: { 
+          'stats.timesAsked': 1,
+          'stats.correctAnswers': isCorrect ? 1 : 0
+        }
+      });
 
-      await room.save();
+      const player = updatedRoom.players.find(p => p.userId.toString() === socket.userId);
 
       socket.emit('answer_result', { correct: isCorrect, score, totalScore: player.score });
       io.to(roomCode).emit('leaderboard_update', { 
-        players: room.players.map(p => ({ username: p.username, score: p.score }))
+        players: updatedRoom.players.map(p => ({ username: p.username, score: p.score }))
       });
 
-      // Check if all players have answered this question
-      const allAnswered = room.players.every(p => 
-        p.answers.length > questionIndex
-      );
+      // Get fresh room data to ensure we have latest answers
+      const freshRoom = await GameRoom.findOne({ roomCode }).populate('questions');
+      if (!freshRoom) return;
 
-      if (allAnswered && room.currentQuestion === questionIndex) {
-        // All players answered, move to next question after 2 seconds
-        console.log(`All players answered question ${questionIndex} in room ${roomCode}`);
+      const currentQuestionId = freshRoom.questions[questionIndex]._id.toString();
+      
+      // Count how many players have answered THIS SPECIFIC question by checking questionId
+      const playersAnswered = freshRoom.players.filter(p => 
+        p.answers.some(ans => ans.questionId === currentQuestionId)
+      ).length;
+      const totalPlayers = freshRoom.players.length;
+
+      console.log(`📊 Room ${roomCode} - Question ${questionIndex} (ID: ${currentQuestionId.substring(0, 8)}...): ${playersAnswered}/${totalPlayers} players answered`);
+      
+      // Debug: Show which players answered
+      freshRoom.players.forEach(p => {
+        const answeredCurrent = p.answers.some(ans => ans.questionId === currentQuestionId);
+        console.log(`   👤 ${p.username}: ${answeredCurrent ? '✅' : '❌'} (${p.answers.length} total answers)`);
+      });
+
+      // Check if ALL players have answered THIS specific question
+      const allAnswered = playersAnswered === totalPlayers;
+
+      if (allAnswered && freshRoom.currentQuestion === questionIndex) {
+        // Use a unique key to prevent multiple timeouts for the same question
+        const advanceKey = `${roomCode}-${questionIndex}`;
+        if (global.advancingQuestions?.has(advanceKey)) {
+          console.log(`⚠️ Already advancing question ${questionIndex} in room ${roomCode}`);
+          return;
+        }
+        
+        if (!global.advancingQuestions) global.advancingQuestions = new Set();
+        global.advancingQuestions.add(advanceKey);
+        
+        // All players answered, move to next question after 3 seconds
+        console.log(`✅ ALL ${totalPlayers} players answered question ${questionIndex} in room ${roomCode} - advancing in 3s`);
+        
+        // Emit signal to all clients that everyone answered
+        io.to(roomCode).emit('all_answered', { nextIn: 3000 });
         
         setTimeout(async () => {
-          const updatedRoom = await GameRoom.findOne({ roomCode }).populate('questions');
-          if (!updatedRoom || updatedRoom.status !== 'playing') return;
-          
-          // Double check we're still on the same question
-          if (updatedRoom.currentQuestion !== questionIndex) return;
+          try {
+            const roomToAdvance = await GameRoom.findOne({ roomCode }).populate('questions');
+            if (!roomToAdvance || roomToAdvance.status !== 'playing') {
+              global.advancingQuestions.delete(advanceKey);
+              return;
+            }
+            
+            // Double check we're still on the same question
+            if (roomToAdvance.currentQuestion !== questionIndex) {
+              console.log(`⚠️ Question already advanced in room ${roomCode}`);
+              global.advancingQuestions.delete(advanceKey);
+              return;
+            }
 
-          updatedRoom.currentQuestion++;
-          
-          if (updatedRoom.currentQuestion >= updatedRoom.questions.length) {
-            await endGame(io, updatedRoom);
-          } else {
-            await updatedRoom.save();
-            sendQuestion(io, roomCode, updatedRoom.questions[updatedRoom.currentQuestion], updatedRoom.currentQuestion);
+            roomToAdvance.currentQuestion++;
+            
+            if (roomToAdvance.currentQuestion >= roomToAdvance.questions.length) {
+              await endGame(io, roomToAdvance);
+            } else {
+              await roomToAdvance.save();
+              console.log(`➡️ Moving to question ${roomToAdvance.currentQuestion} in room ${roomCode}`);
+              sendQuestion(io, roomCode, roomToAdvance.questions[roomToAdvance.currentQuestion], roomToAdvance.currentQuestion);
+            }
+            
+            global.advancingQuestions.delete(advanceKey);
+          } catch (error) {
+            console.error('Error advancing question:', error);
+            global.advancingQuestions.delete(advanceKey);
           }
-        }, 2000);
+        }, 3000);
       }
     } catch (error) {
       socket.emit('error', { message: error.message });
@@ -131,28 +233,12 @@ const sendQuestion = (io, roomCode, question, index) => {
       id: question._id,
       question: question.question,
       options: question.options,
-      difficulty: question.difficulty
+      difficulty: question.difficulty,
+      category: question.category,
+      correctAnswer: question.correctAnswer
     },
     timestamp: Date.now()
   });
-
-  // Auto-advance after 20 seconds (15s question + 5s buffer)
-  setTimeout(async () => {
-    const room = await GameRoom.findOne({ roomCode }).populate('questions');
-    if (!room || room.status !== 'playing') return;
-    
-    // Check if we're still on this question
-    if (room.currentQuestion === index) {
-      room.currentQuestion++;
-      
-      if (room.currentQuestion >= room.questions.length) {
-        await endGame(io, room);
-      } else {
-        await room.save();
-        sendQuestion(io, roomCode, room.questions[room.currentQuestion], room.currentQuestion);
-      }
-    }
-  }, 20000);
 };
 
 const endGame = async (io, room) => {

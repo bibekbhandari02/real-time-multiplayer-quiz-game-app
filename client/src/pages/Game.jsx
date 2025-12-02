@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSocket, initSocket } from '../socket/socket';
@@ -14,8 +14,14 @@ export default function Game() {
   const [gameOver, setGameOver] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answered, setAnswered] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(null);
+  const [showResult, setShowResult] = useState(false);
+  const [allAnswered, setAllAnswered] = useState(false);
+  const [countdown, setCountdown] = useState(null);
+  const [playerLeftNotification, setPlayerLeftNotification] = useState(null);
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const hasSubmittedRef = useRef(false);
   
   // Initialize socket if not already initialized
   const socket = getSocket() || initSocket(user.id, user.username);
@@ -47,7 +53,12 @@ export default function Game() {
       setQuestionIndex(index);
       setSelectedAnswer(null);
       setAnswered(false);
+      setIsCorrect(null);
+      setShowResult(false);
+      setAllAnswered(false);
+      setCountdown(null);
       setTimeLeft(15);
+      hasSubmittedRef.current = false;
       
       const startTime = Date.now();
       timerInterval = setInterval(() => {
@@ -56,7 +67,8 @@ export default function Game() {
         setTimeLeft(newTimeLeft);
         
         // Auto-submit when time runs out if not answered
-        if (newTimeLeft === 0) {
+        if (newTimeLeft === 0 && !hasSubmittedRef.current) {
+          hasSubmittedRef.current = true;
           clearInterval(timerInterval);
           setAnswered(true);
           socket.emit('submit_answer', {
@@ -71,11 +83,29 @@ export default function Game() {
 
     socket.on('answer_result', ({ correct, score: newScore, totalScore }) => {
       setScore(totalScore);
-      // Don't set answered here, it's already set in submitAnswer
+      setIsCorrect(correct);
+      setShowResult(true);
     });
 
     socket.on('leaderboard_update', ({ players }) => {
       setLeaderboard(players);
+    });
+
+    socket.on('all_answered', ({ nextIn }) => {
+      setAllAnswered(true);
+      setCountdown(Math.floor(nextIn / 1000));
+      console.log(`All players answered! Next question in ${nextIn}ms`);
+      
+      // Start countdown
+      const countdownInterval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     });
 
     socket.on('game_over', ({ winner, leaderboard: finalBoard }) => {
@@ -86,6 +116,19 @@ export default function Game() {
       setLeaderboard(finalBoard);
     });
 
+    socket.on('player_left', ({ username, players }) => {
+      // Show notification
+      setPlayerLeftNotification(username);
+      
+      // Update leaderboard
+      setLeaderboard(players.map(p => ({ username: p.username, score: p.score })));
+      
+      // Hide notification after 5 seconds
+      setTimeout(() => {
+        setPlayerLeftNotification(null);
+      }, 5000);
+    });
+
     return () => {
       if (timerInterval) {
         clearInterval(timerInterval);
@@ -94,13 +137,16 @@ export default function Game() {
       socket.off('new_question');
       socket.off('answer_result');
       socket.off('leaderboard_update');
+      socket.off('all_answered');
       socket.off('game_over');
+      socket.off('player_left');
     };
   }, [socket, roomCode]);
 
   const submitAnswer = (answerIndex) => {
-    if (answered || timeLeft === 0) return;
+    if (hasSubmittedRef.current) return;
     
+    hasSubmittedRef.current = true;
     setAnswered(true);
     setSelectedAnswer(answerIndex);
     const timeSpent = 15 - timeLeft;
@@ -166,6 +212,13 @@ export default function Game() {
     );
   }
 
+  const quitGame = () => {
+    if (confirm('Are you sure you want to quit? Your progress will be lost.')) {
+      socket.emit('leave_room', { roomCode, userId: user.id });
+      navigate('/');
+    }
+  };
+
   return (
     <div className="min-h-screen p-4">
       <div className="max-w-4xl mx-auto">
@@ -174,6 +227,12 @@ export default function Game() {
             <p className="text-sm opacity-80">Score</p>
             <p className="text-2xl font-bold">{score}</p>
           </div>
+          <button
+            onClick={quitGame}
+            className="bg-red-500/80 hover:bg-red-500 px-4 py-2 rounded-lg font-semibold transition"
+          >
+            ❌ Quit Game
+          </button>
           <div className={`bg-white/20 px-6 py-3 rounded-xl ${timeLeft <= 5 ? 'animate-pulse bg-red-500/40' : ''}`}>
             <p className="text-sm opacity-80">Time</p>
             <p className="text-2xl font-bold">{timeLeft}s</p>
@@ -188,7 +247,14 @@ export default function Game() {
         >
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-gray-500">Question {questionIndex + 1}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">Question {questionIndex + 1}</span>
+                {question.category && (
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                    {question.category}
+                  </span>
+                )}
+              </div>
               <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                 question.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
                 question.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
@@ -201,27 +267,90 @@ export default function Game() {
           </div>
 
           <div className="grid gap-4">
-            {question.options.map((option, index) => (
-              <motion.button
-                key={index}
-                whileHover={{ scale: answered ? 1 : 1.02 }}
-                whileTap={{ scale: answered ? 1 : 0.98 }}
-                onClick={() => submitAnswer(index)}
-                disabled={answered || timeLeft === 0}
-                className={`p-4 rounded-lg text-left font-semibold transition relative ${
-                  selectedAnswer === index
-                    ? 'bg-primary text-white shadow-lg'
-                    : 'bg-gray-100 hover:bg-gray-200'
-                } ${answered || timeLeft === 0 ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
-              >
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center font-bold">
-                  {String.fromCharCode(65 + index)}
-                </span>
-                <span className="ml-10">{option}</span>
-              </motion.button>
-            ))}
+            {question.options.map((option, index) => {
+              const isSelected = selectedAnswer === index;
+              const isCorrectAnswer = showResult && question.correctAnswer === index;
+              const isWrongAnswer = showResult && isSelected && !isCorrect;
+              
+              return (
+                <button
+                  key={index}
+                  onClick={() => submitAnswer(index)}
+                  disabled={answered || timeLeft === 0}
+                  className={`p-4 rounded-lg text-left font-semibold transition-all relative ${
+                    isCorrectAnswer
+                      ? 'bg-green-500 text-white shadow-lg border-2 border-green-600'
+                      : isWrongAnswer
+                      ? 'bg-red-500 text-white shadow-lg border-2 border-red-600'
+                      : isSelected
+                      ? 'bg-primary text-white shadow-lg scale-105'
+                      : 'bg-gray-100 hover:bg-gray-200 hover:scale-102'
+                  } ${answered || timeLeft === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                >
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center font-bold">
+                    {String.fromCharCode(65 + index)}
+                  </span>
+                  <span className="ml-10 flex items-center justify-between">
+                    <span>{option}</span>
+                    {isCorrectAnswer && <span className="text-2xl">✓</span>}
+                    {isWrongAnswer && <span className="text-2xl">✗</span>}
+                  </span>
+                </button>
+              );
+            })}
           </div>
+
+          {showResult && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mt-4 p-4 rounded-lg ${
+                isCorrect ? 'bg-green-100 border-2 border-green-500' : 'bg-red-100 border-2 border-red-500'
+              }`}
+            >
+              <p className={`font-bold text-lg ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
+                {isCorrect ? '✓ Correct!' : '✗ Wrong Answer'}
+              </p>
+              <p className="text-gray-700 mt-2">
+                The correct answer is: <strong>{question.options[question.correctAnswer]}</strong>
+              </p>
+            </motion.div>
+          )}
+
+          {allAnswered && countdown !== null && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mt-4 p-4 rounded-lg bg-blue-100 border-2 border-blue-500 text-center"
+            >
+              <p className="font-bold text-blue-700 text-xl">
+                {countdown > 0 ? (
+                  <>⏳ Next question in <span className="text-3xl">{countdown}</span>...</>
+                ) : (
+                  <>🚀 Loading next question...</>
+                )}
+              </p>
+            </motion.div>
+          )}
         </motion.div>
+
+        {/* Player Left Notification */}
+        <AnimatePresence>
+          {playerLeftNotification && (
+            <motion.div
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
+            >
+              <div className="bg-red-500 text-white px-6 py-4 rounded-lg shadow-2xl border-2 border-red-600">
+                <p className="font-bold text-lg">
+                  👋 {playerLeftNotification} left the game
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

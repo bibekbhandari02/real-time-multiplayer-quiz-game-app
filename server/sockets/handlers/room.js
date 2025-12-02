@@ -73,11 +73,23 @@ export const handleRoomEvents = (socket, io) => {
     try {
       const room = await GameRoom.findOne({ roomCode: data.roomCode });
       if (room) {
+        // Find the player who's leaving to get their username
+        const leavingPlayer = room.players.find(p => p.userId.toString() === data.userId);
+        const username = leavingPlayer?.username || 'A player';
+        
         room.players = room.players.filter(p => p.userId.toString() !== data.userId);
         await room.save();
         
         socket.leave(data.roomCode);
-        io.to(data.roomCode).emit('player_left', { userId: data.userId, players: room.players });
+        
+        // Notify others in the room
+        io.to(data.roomCode).emit('player_left', { 
+          userId: data.userId, 
+          username: username,
+          players: room.players 
+        });
+        
+        console.log(`👋 ${username} left room: ${data.roomCode}`);
       }
     } catch (error) {
       socket.emit('error', { message: error.message });

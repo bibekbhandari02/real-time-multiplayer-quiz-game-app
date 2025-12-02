@@ -6,10 +6,15 @@ import { initSocket, getSocket } from '../socket/socket';
 
 export default function Home() {
   const [roomCode, setRoomCode] = useState('');
-  const { user, logout } = useAuthStore();
+  const [showSettings, setShowSettings] = useState(false);
+  const [category, setCategory] = useState('General Knowledge');
+  const [questionsCount, setQuestionsCount] = useState(10);
+  const [timePerQuestion, setTimePerQuestion] = useState(15);
+  const { user, logout, refreshUser } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
+    refreshUser();
     initSocket(user.id, user.username);
     
     const socket = getSocket();
@@ -29,10 +34,12 @@ export default function Home() {
       username: user.username,
       settings: {
         maxPlayers: 10,
-        questionsCount: 10,
-        timePerQuestion: 15
+        questionsCount,
+        timePerQuestion,
+        category
       }
     });
+    setShowSettings(false);
   };
 
   const joinRoom = () => {
@@ -89,7 +96,7 @@ export default function Home() {
             <h2 className="text-2xl font-bold mb-4">Create Room</h2>
             <p className="text-gray-600 mb-6">Start a new quiz game and invite friends</p>
             <button
-              onClick={createRoom}
+              onClick={() => setShowSettings(true)}
               className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition"
             >
               Create New Room
@@ -141,29 +148,135 @@ export default function Home() {
           className="mt-8 bg-white rounded-2xl p-8 shadow-2xl"
         >
           <h2 className="text-2xl font-bold mb-4">Your Stats</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-primary">{user.level}</p>
-              <p className="text-gray-600">Level</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg text-center border border-blue-200">
+              <p className="text-3xl font-bold text-blue-600">{user.stats?.gamesPlayed || 0}</p>
+              <p className="text-gray-700 font-semibold text-sm">Games Played</p>
             </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-secondary">{user.xp}</p>
-              <p className="text-gray-600">XP</p>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg text-center border border-green-200">
+              <p className="text-3xl font-bold text-green-600">{user.stats?.gamesWon || 0}</p>
+              <p className="text-gray-700 font-semibold text-sm">Wins</p>
             </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-accent">{user.elo || 1000}</p>
-              <p className="text-gray-600">ELO</p>
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg text-center border border-purple-200">
+              <p className="text-3xl font-bold text-purple-600">
+                {user.stats?.gamesPlayed > 0 
+                  ? ((user.stats.gamesWon / user.stats.gamesPlayed) * 100).toFixed(1)
+                  : 0}%
+              </p>
+              <p className="text-gray-700 font-semibold text-sm">Win Rate</p>
             </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-green-500">{user.coins || 100}</p>
-              <p className="text-gray-600">Coins</p>
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg text-center border border-orange-200">
+              <p className="text-3xl font-bold text-orange-600">{user.stats?.accuracy?.toFixed(1) || 0}%</p>
+              <p className="text-gray-700 font-semibold text-sm">Accuracy</p>
             </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-orange-500">0</p>
-              <p className="text-gray-600">Badges</p>
+          </div>
+          
+          <div className="mt-4 flex justify-center">
+            <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 px-6 py-3 rounded-lg border-2 border-yellow-300">
+              <p className="text-sm text-gray-600 font-semibold">ELO Rating</p>
+              <p className="text-2xl font-bold text-yellow-700">{user.elo || 1000}</p>
             </div>
           </div>
         </motion.div>
+
+        {/* Room Settings Modal */}
+        {showSettings && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
+            >
+              <h2 className="text-2xl font-bold mb-6">Room Settings</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  >
+                    <option value="General Knowledge">General Knowledge</option>
+                    <option value="Science">Science</option>
+                    <option value="History">History</option>
+                    <option value="Geography">Geography</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Biology">Biology</option>
+                    <option value="Music">Music</option>
+                    <option value="Anime">Anime & Manga</option>
+                    <option value="Movies">Movies & TV Shows</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Video Games">Video Games</option>
+                    <option value="Literature">Literature & Books</option>
+                    <option value="Art">Art & Culture</option>
+                    <option value="Food">Food & Cooking</option>
+                    <option value="Nature">Nature & Animals</option>
+                    <option value="Space">Space & Astronomy</option>
+                    <option value="Mythology">Mythology & Legends</option>
+                    <option value="Politics">Politics & World Affairs</option>
+                    <option value="Business">Business & Economics</option>
+                    <option value="Fashion">Fashion & Style</option>
+                    <option value="Cars">Cars & Vehicles</option>
+                    <option value="Programming">Programming & Coding</option>
+                    <option value="Marvel">Marvel Universe</option>
+                    <option value="DC">DC Universe</option>
+                    <option value="Pokemon">Pokémon</option>
+                    <option value="Harry Potter">Harry Potter</option>
+                    <option value="Star Wars">Star Wars</option>
+                    <option value="Lord of the Rings">Lord of the Rings</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Number of Questions: {questionsCount}
+                  </label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="20"
+                    value={questionsCount}
+                    onChange={(e) => setQuestionsCount(parseInt(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Time per Question: {timePerQuestion}s
+                  </label>
+                  <input
+                    type="range"
+                    min="10"
+                    max="30"
+                    value={timePerQuestion}
+                    onChange={(e) => setTimePerQuestion(parseInt(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={createRoom}
+                  className="flex-1 bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition"
+                >
+                  Create Room
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -19,6 +19,11 @@ const userSchema = new mongoose.Schema({
     streak: { type: Number, default: 0 }
   },
   friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  friendRequests: [{
+    from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    username: String,
+    sentAt: { type: Date, default: Date.now }
+  }],
   isAdmin: { type: Boolean, default: false },
   lastActive: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now }

@@ -1,6 +1,8 @@
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+// Use relative URL in production, localhost in development
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 
+  (import.meta.env.MODE === 'production' ? window.location.origin : 'http://localhost:5000');
 
 let socket = null;
 

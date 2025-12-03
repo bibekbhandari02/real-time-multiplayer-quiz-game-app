@@ -173,27 +173,27 @@ export default function Game() {
 
   if (gameOver) {
     return (
-      <div className="min-h-screen p-4 flex items-center justify-center">
+      <div className="min-h-screen p-4 flex items-center justify-center bg-gray-100">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           className="bg-white rounded-2xl p-8 shadow-2xl max-w-2xl w-full"
         >
-          <h1 className="text-4xl font-bold text-center mb-6">Game Over!</h1>
+          <h1 className="text-4xl font-bold text-center mb-6 text-black">Game Over!</h1>
           <div className="mb-6">
-            <h2 className="text-2xl font-bold mb-4 text-center">🏆 Game Over!</h2>
-            <div className="bg-gradient-to-r from-yellow-100 to-orange-100 p-6 rounded-xl mb-6">
-              <h3 className="text-xl font-bold text-center mb-2">Winner</h3>
-              <p className="text-3xl font-bold text-center text-primary">{leaderboard[0]?.username}</p>
+            <h2 className="text-2xl font-bold mb-4 text-center text-black">🏆 Game Over!</h2>
+            <div className="bg-gray-100 p-6 rounded-xl mb-6 border border-gray-200">
+              <h3 className="text-xl font-bold text-center mb-2 text-black">Winner</h3>
+              <p className="text-3xl font-bold text-center text-black">{leaderboard[0]?.username}</p>
               <p className="text-center text-gray-600 mt-2">{leaderboard[0]?.score} points</p>
             </div>
-            <h3 className="text-xl font-bold mb-3">Final Standings</h3>
+            <h3 className="text-xl font-bold mb-3 text-black">Final Standings</h3>
             {leaderboard.map((player, index) => (
               <div key={index} className={`flex justify-between items-center p-4 rounded-lg mb-2 ${
-                index === 0 ? 'bg-yellow-100 border-2 border-yellow-400' :
-                index === 1 ? 'bg-gray-100 border-2 border-gray-400' :
-                index === 2 ? 'bg-orange-100 border-2 border-orange-400' :
-                'bg-gray-50'
+                index === 0 ? 'bg-orange-500 text-white border border-orange-600' :
+                index === 1 ? 'bg-gray-200 text-black border border-gray-300' :
+                index === 2 ? 'bg-gray-300 text-black border border-gray-400' :
+                'bg-gray-50 text-black'
               }`}>
                 <div className="flex items-center gap-3">
                   <span className="text-2xl font-bold">
@@ -201,13 +201,13 @@ export default function Game() {
                   </span>
                   <span className="font-semibold">{player.username}</span>
                 </div>
-                <span className="text-primary font-bold">{player.score} pts</span>
+                <span className="font-bold">{player.score} pts</span>
               </div>
             ))}
           </div>
           <button
             onClick={() => navigate('/')}
-            className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition"
+            className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition"
           >
             Back to Home
           </button>
@@ -218,7 +218,7 @@ export default function Game() {
 
   if (!question) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-white text-2xl">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center text-black text-2xl">
         Starting game...
       </div>
     );
@@ -232,23 +232,23 @@ export default function Game() {
   };
 
   return (
-    <div className="min-h-screen p-3 md:p-4 pb-20 md:pb-4">
+    <div className="min-h-screen p-3 md:p-4 pb-20 md:pb-4 bg-gray-100">
       <div className="max-w-4xl mx-auto">
         {/* Mobile-optimized header */}
-        <div className="flex justify-between items-center mb-4 md:mb-6 text-white gap-2">
-          <div className="bg-white/20 px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl flex-1 max-w-[100px] md:max-w-none">
-            <p className="text-xs md:text-sm opacity-80">Score</p>
+        <div className="flex justify-between items-center mb-4 md:mb-6 text-black gap-2">
+          <div className="bg-white text-black px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl flex-1 max-w-[100px] md:max-w-none">
+            <p className="text-xs md:text-sm text-gray-600">Score</p>
             <p className="text-xl md:text-2xl font-bold">{score}</p>
           </div>
           <button
             onClick={quitGame}
-            className="bg-red-500/80 hover:bg-red-500 px-3 md:px-4 py-2 rounded-lg font-semibold transition text-sm md:text-base whitespace-nowrap"
+            className="bg-red-500 hover:bg-red-600 text-white px-3 md:px-4 py-2 rounded-lg font-semibold transition text-sm md:text-base whitespace-nowrap"
           >
             <span className="hidden md:inline">❌ Quit</span>
             <span className="md:hidden">❌</span>
           </button>
-          <div className={`bg-white/20 px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl flex-1 max-w-[100px] md:max-w-none ${timeLeft <= 5 ? 'animate-pulse bg-red-500/40' : ''}`}>
-            <p className="text-xs md:text-sm opacity-80">Time</p>
+          <div className={`bg-white text-black px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl flex-1 max-w-[100px] md:max-w-none ${timeLeft <= 5 ? 'animate-pulse bg-red-500 text-white' : ''}`}>
+            <p className="text-xs md:text-sm text-gray-600">Time</p>
             <p className="text-xl md:text-2xl font-bold">{timeLeft}s</p>
           </div>
         </div>
@@ -264,20 +264,20 @@ export default function Game() {
               <div className="flex items-center gap-2">
                 <span className="text-xs md:text-sm text-gray-500 font-semibold">Q{questionIndex + 1}</span>
                 {question.category && (
-                  <span className="px-2 md:px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                  <span className="px-2 md:px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 text-black border border-gray-300">
                     {question.category}
                   </span>
                 )}
               </div>
               <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-semibold ${
-                question.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
-                question.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                'bg-red-100 text-red-700'
+                question.difficulty === 'easy' ? 'bg-green-500 text-white' :
+                question.difficulty === 'medium' ? 'bg-orange-500 text-white' :
+                'bg-red-500 text-white'
               }`}>
                 {question.difficulty?.toUpperCase()}
               </span>
             </div>
-            <h2 className="text-lg md:text-2xl font-bold leading-tight">{question.question}</h2>
+            <h2 className="text-lg md:text-2xl font-bold leading-tight text-black">{question.question}</h2>
           </div>
 
           <div className="grid gap-3 md:gap-4">
@@ -297,8 +297,8 @@ export default function Game() {
                       : isWrongAnswer
                       ? 'bg-red-500 text-white shadow-lg border-2 border-red-600'
                       : isSelected
-                      ? 'bg-primary text-white shadow-lg scale-105'
-                      : 'bg-gray-100 hover:bg-gray-200 active:scale-95'
+                      ? 'bg-black text-white shadow-lg scale-105'
+                      : 'bg-gray-100 text-black hover:bg-gray-200 active:scale-95'
                   } ${answered || timeLeft === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   <span className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 w-7 h-7 md:w-8 md:h-8 bg-white/20 rounded-full flex items-center justify-center font-bold text-sm md:text-base">
@@ -319,13 +319,13 @@ export default function Game() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className={`mt-3 md:mt-4 p-3 md:p-4 rounded-lg ${
-                isCorrect ? 'bg-green-100 border-2 border-green-500' : 'bg-red-100 border-2 border-red-500'
+                isCorrect ? 'bg-green-100 border border-green-500' : 'bg-red-100 border border-red-500'
               }`}
             >
               <p className={`font-bold text-base md:text-lg ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
                 {isCorrect ? '✓ Correct!' : '✗ Wrong Answer'}
               </p>
-              <p className="text-gray-700 mt-2 text-sm md:text-base">
+              <p className="text-black mt-2 text-sm md:text-base">
                 The correct answer is: <strong>{question.options[question.correctAnswer]}</strong>
               </p>
             </motion.div>
@@ -335,9 +335,9 @@ export default function Game() {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mt-4 p-4 rounded-lg bg-blue-100 border-2 border-blue-500 text-center"
+              className="mt-4 p-4 rounded-lg bg-gray-100 border border-gray-300 text-center"
             >
-              <p className="font-bold text-blue-700 text-xl">
+              <p className="font-bold text-black text-xl">
                 {countdown > 0 ? (
                   <>⏳ Next question in <span className="text-3xl">{countdown}</span>...</>
                 ) : (
@@ -355,10 +355,10 @@ export default function Game() {
               initial={{ opacity: 0, y: -50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -50 }}
-              className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
+              className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 w-full max-w-md"
             >
-              <div className="bg-red-500 text-white px-6 py-4 rounded-lg shadow-2xl border-2 border-red-600">
-                <p className="font-bold text-lg">
+              <div className="bg-red-500 text-white px-4 md:px-6 py-3 md:py-4 rounded-lg shadow-2xl border border-red-600">
+                <p className="font-bold text-sm md:text-lg text-center">
                   👋 {playerLeftNotification} left the game
                 </p>
               </div>
@@ -371,7 +371,7 @@ export default function Game() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl p-6 shadow-2xl"
         >
-          <h3 className="font-bold mb-4 flex items-center gap-2">
+          <h3 className="font-bold mb-4 flex items-center gap-2 text-black">
             <span>🏆</span>
             <span>Live Leaderboard</span>
           </h3>
@@ -383,14 +383,14 @@ export default function Game() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
                 className={`flex justify-between items-center p-3 rounded-lg ${
-                  index === 0 ? 'bg-yellow-100' : 'bg-gray-50'
+                  index === 0 ? 'bg-orange-500 text-white' : 'bg-gray-50 text-black'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-500">#{index + 1}</span>
+                  <span className={`font-bold ${index === 0 ? 'text-white' : 'text-gray-500'}`}>#{index + 1}</span>
                   <span className="font-semibold">{player.username}</span>
                 </div>
-                <span className="font-bold text-primary">{player.score}</span>
+                <span className="font-bold">{player.score}</span>
               </motion.div>
             ))}
           </div>
@@ -399,3 +399,4 @@ export default function Game() {
     </div>
   );
 }
+

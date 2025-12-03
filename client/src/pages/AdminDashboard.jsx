@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import axios from '../api/axios';
 
 export default function AdminDashboard() {
   const [analytics, setAnalytics] = useState(null);
@@ -51,17 +51,17 @@ export default function AdminDashboard() {
   };
 
   if (!analytics) {
-    return <div className="min-h-screen flex items-center justify-center text-white">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-black">Loading...</div>;
   }
 
   return (
     <div className="min-h-screen p-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-white">Admin Dashboard</h1>
+          <h1 className="text-4xl font-bold text-black">Admin Dashboard</h1>
           <button
             onClick={() => navigate('/')}
-            className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition"
+            className="bg-white/20 text-black px-4 py-2 rounded-lg hover:bg-white/30 transition"
           >
             Back to Home
           </button>

@@ -29,13 +29,13 @@ export default function Toast({ message, type = 'info', onClose, duration = 3000
       initial={{ opacity: 0, y: -50, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className={`${colors[type]} text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 min-w-[300px] max-w-md`}
+      className={`${colors[type]} text-black px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 min-w-[300px] max-w-md`}
     >
       <span className="text-2xl">{icons[type]}</span>
       <p className="flex-1 font-semibold">{message}</p>
       <button
         onClick={onClose}
-        className="text-white/80 hover:text-white text-xl font-bold"
+        className="text-black/80 hover:text-black text-xl font-bold"
       >
         ×
       </button>

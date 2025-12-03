@@ -42,11 +42,11 @@ export default function ToastNotification() {
       case 'high':
         return 'border-red-500 bg-red-50';
       case 'medium':
-        return 'border-blue-500 bg-blue-50';
+        return 'border-gray-300 bg-blue-50';
       case 'low':
         return 'border-gray-500 bg-gray-50';
       default:
-        return 'border-blue-500 bg-blue-50';
+        return 'border-gray-300 bg-blue-50';
     }
   };
 
@@ -74,7 +74,7 @@ export default function ToastNotification() {
                       e.stopPropagation();
                       removeToast(toast.id);
                     }}
-                    className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                    className="text-gray-600 hover:text-gray-600 flex-shrink-0"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

@@ -17,6 +17,11 @@ export default function Home() {
 
   useEffect(() => {
     refreshUser();
+  }, []);
+
+  useEffect(() => {
+    if (!user?.id || !user?.username) return;
+    
     initSocket(user.id, user.username);
     
     const socket = getSocket();
@@ -30,6 +35,11 @@ export default function Home() {
   }, [user, navigate]);
 
   const createRoom = () => {
+    if (!user?.id || !user?.username) {
+      console.error('User not loaded');
+      return;
+    }
+    
     const socket = getSocket();
     socket.emit('create_room', {
       userId: user.id,
@@ -50,6 +60,17 @@ export default function Home() {
     }
   };
 
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-white mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Navbar />
@@ -62,65 +83,89 @@ export default function Home() {
       <div className="max-w-6xl mx-auto">
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          {/* Create Room Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl border-2 border-green-500/30 hover:border-green-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all"
+            className="group relative bg-white rounded-2xl p-6 md:p-8 shadow-2xl hover:shadow-3xl transition-all duration-300"
           >
-            <h2 className="text-xl md:text-2xl font-bold mb-2 text-green-400">Create Room</h2>
-            <p className="text-gray-400 text-sm md:text-base mb-4 md:mb-6">Start a new quiz game and invite friends</p>
-            <button
-              onClick={() => setShowSettings(true)}
-              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 md:py-3 rounded-lg font-semibold hover:from-green-500 hover:to-emerald-500 transition shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] text-sm md:text-base"
-            >
-              Create New Room
-            </button>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-2xl shadow-lg">
+                  ✨
+                </div>
+                <h2 className="text-xl md:text-2xl font-bold text-black">Create Room</h2>
+              </div>
+              <p className="text-gray-600 text-sm md:text-base mb-6">Start a new quiz game and invite friends to join</p>
+              <button
+                onClick={() => setShowSettings(true)}
+                className="w-full bg-gray-50 text-black py-3.5 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:scale-[1.02] text-sm md:text-base"
+              >
+                Create New Room
+              </button>
+            </div>
           </motion.div>
 
+          {/* Join Room Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl border-2 border-green-500/30 hover:border-green-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all"
+            className="group relative bg-white rounded-2xl p-6 md:p-8 shadow-2xl hover:shadow-3xl transition-all duration-300"
           >
-            <h2 className="text-xl md:text-2xl font-bold mb-2 text-green-400">Join Room</h2>
-            <p className="text-gray-400 text-sm md:text-base mb-4 md:mb-6">Enter a room code to join an existing game</p>
-            <input
-              type="text"
-              value={roomCode}
-              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-              placeholder="Enter room code"
-              maxLength={6}
-              className="w-full px-4 py-3 bg-gray-800 border-2 border-green-500/50 text-green-400 rounded-lg mb-3 focus:ring-2 focus:ring-green-500 focus:border-green-400 text-center text-lg font-bold tracking-wider placeholder-gray-600"
-            />
-            <button
-              onClick={joinRoom}
-              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-emerald-500 hover:to-green-500 transition shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] text-sm md:text-base"
-            >
-              Join Room
-            </button>
-            <button
-              onClick={() => roomCode.trim() && navigate(`/spectator/${roomCode.toUpperCase()}`)}
-              className="w-full mt-2 bg-gradient-to-r from-gray-800 to-gray-700 text-gray-300 py-2 rounded-lg font-semibold hover:from-gray-700 hover:to-gray-600 transition border border-gray-600 text-sm"
-            >
-              👁️ Spectate
-            </button>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-2xl shadow-lg">
+                  🎮
+                </div>
+                <h2 className="text-xl md:text-2xl font-bold text-black">Join Room</h2>
+              </div>
+              <p className="text-gray-600 text-sm md:text-base mb-4">Enter a room code to join an existing game</p>
+              <input
+                type="text"
+                value={roomCode}
+                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                placeholder="ENTER CODE"
+                maxLength={6}
+                className="w-full px-4 py-3.5 bg-gray-100 border-2 border-gray-200 text-black rounded-xl mb-3 focus:ring-2 focus:ring-black focus:border-black text-center text-lg font-bold tracking-[0.3em] placeholder-gray-400 transition-all"
+              />
+              <button
+                onClick={joinRoom}
+                className="w-full bg-gray-50 text-black py-3.5 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:scale-[1.02] text-sm md:text-base mb-2"
+              >
+                Join Room
+              </button>
+              <button
+                onClick={() => roomCode.trim() && navigate(`/spectator/${roomCode.toUpperCase()}`)}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-medium transition-all border border-gray-200 hover:border-gray-300 text-sm flex items-center justify-center gap-2"
+              >
+                <span>👁️</span> Spectate Mode
+              </button>
+            </div>
           </motion.div>
 
+          {/* Ranked Match Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl border-2 border-green-500/30 hover:border-green-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all"
+            className="group relative bg-white rounded-2xl p-6 md:p-8 shadow-2xl hover:shadow-3xl transition-all duration-300"
           >
-            <h2 className="text-xl md:text-2xl font-bold mb-2 text-green-400">Ranked Match</h2>
-            <p className="text-gray-400 text-sm md:text-base mb-4 md:mb-6">Compete with players at your skill level</p>
-            <button
-              onClick={() => navigate('/matchmaking')}
-              className="w-full bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white py-3 rounded-lg font-semibold hover:from-green-500 hover:via-emerald-500 hover:to-teal-500 transition shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] text-sm md:text-base"
-            >
-              Find Match
-            </button>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-2xl shadow-lg">
+                  🏆
+                </div>
+                <h2 className="text-xl md:text-2xl font-bold text-black">Ranked Match</h2>
+              </div>
+              <p className="text-gray-600 text-sm md:text-base mb-6">Compete with players at your skill level</p>
+              <button
+                onClick={() => navigate('/matchmaking')}
+                className="w-full bg-gray-50 text-black py-3.5 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:scale-[1.02] text-sm md:text-base"
+              >
+                Find Match
+              </button>
+            </div>
           </motion.div>
 
         </div>
@@ -129,59 +174,90 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mt-4 md:mt-8 bg-gradient-to-br from-gray-900 to-black rounded-xl md:rounded-2xl p-6 md:p-8 shadow-xl border-2 border-green-500/30"
+          className="mt-6 md:mt-8 bg-white rounded-2xl p-4 md:p-8 shadow-2xl"
         >
-          <h2 className="text-xl md:text-2xl font-bold mb-4 text-green-400">Your Stats</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-3 md:p-4 rounded-lg text-center border-2 border-cyan-500/50 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition">
-              <p className="text-2xl md:text-3xl font-bold text-cyan-400">{user.stats?.gamesPlayed || 0}</p>
-              <p className="text-gray-400 font-semibold text-xs md:text-sm mt-1">Games Played</p>
+          <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-50 rounded-lg flex items-center justify-center text-lg md:text-xl shadow-lg">
+              📊
             </div>
-            <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-3 md:p-4 rounded-lg text-center border-2 border-green-500/50 hover:border-green-400 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition">
-              <p className="text-2xl md:text-3xl font-bold text-green-400">{user.stats?.gamesWon || 0}</p>
-              <p className="text-gray-400 font-semibold text-xs md:text-sm mt-1">Wins</p>
+            <h2 className="text-lg md:text-2xl font-bold text-black">Your Performance</h2>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-4 md:mb-6">
+            {/* Games Played */}
+            <div className="group relative bg-gray-50 p-3 md:p-3 rounded-lg md:rounded-xl text-center border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300">
+              <div className="relative z-10">
+                <div className="text-xl md:text-2xl mb-1">🎮</div>
+                <p className="text-xl md:text-3xl font-bold text-black mb-0.5">{user.stats?.gamesPlayed || 0}</p>
+                <p className="text-gray-600 font-medium text-[10px] md:text-sm">Games</p>
+              </div>
             </div>
-            <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-3 md:p-4 rounded-lg text-center border-2 border-purple-500/50 hover:border-purple-400 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition">
-              <p className="text-2xl md:text-3xl font-bold text-purple-400">
-                {user.stats?.gamesPlayed > 0 
-                  ? ((user.stats.gamesWon / user.stats.gamesPlayed) * 100).toFixed(1)
-                  : 0}%
-              </p>
-              <p className="text-gray-400 font-semibold text-xs md:text-sm mt-1">Win Rate</p>
+
+            {/* Wins */}
+            <div className="group relative bg-gray-50 p-3 md:p-3 rounded-lg md:rounded-xl text-center border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300">
+              <div className="relative z-10">
+                <div className="text-xl md:text-2xl mb-1">🏅</div>
+                <p className="text-xl md:text-3xl font-bold text-black mb-0.5">{user.stats?.gamesWon || 0}</p>
+                <p className="text-gray-600 font-medium text-[10px] md:text-sm">Wins</p>
+              </div>
             </div>
-            <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-3 md:p-4 rounded-lg text-center border-2 border-orange-500/50 hover:border-orange-400 hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] transition">
-              <p className="text-2xl md:text-3xl font-bold text-orange-400">{user.stats?.accuracy?.toFixed(1) || 0}%</p>
-              <p className="text-gray-400 font-semibold text-xs md:text-sm mt-1">Accuracy</p>
+
+            {/* Win Rate */}
+            <div className="group relative bg-gray-50 p-3 md:p-3 rounded-lg md:rounded-xl text-center border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300">
+              <div className="relative z-10">
+                <div className="text-xl md:text-2xl mb-1">📈</div>
+                <p className="text-xl md:text-3xl font-bold text-black mb-0.5">
+                  {user.stats?.gamesPlayed > 0 
+                    ? ((user.stats.gamesWon / user.stats.gamesPlayed) * 100).toFixed(1)
+                    : 0}%
+                </p>
+                <p className="text-gray-600 font-medium text-[10px] md:text-sm">Win Rate</p>
+              </div>
+            </div>
+
+            {/* Accuracy */}
+            <div className="group relative bg-gray-50 p-3 md:p-3 rounded-lg md:rounded-xl text-center border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300">
+              <div className="relative z-10">
+                <div className="text-xl md:text-2xl mb-1">🎯</div>
+                <p className="text-xl md:text-3xl font-bold text-black mb-0.5">{user.stats?.accuracy?.toFixed(1) || 0}%</p>
+                <p className="text-gray-600 font-medium text-[10px] md:text-sm">Accuracy</p>
+              </div>
             </div>
           </div>
           
-          <div className="mt-4 flex justify-center">
-            <div className="bg-gradient-to-r from-yellow-900/50 to-amber-900/50 px-6 py-3 rounded-lg border-2 border-yellow-500/50 hover:border-yellow-400 hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition">
-              <p className="text-xs md:text-sm text-gray-400 font-semibold">ELO Rating</p>
-              <p className="text-xl md:text-2xl font-bold text-yellow-400">{user.elo || 1000}</p>
+          {/* ELO Rating - Featured */}
+          <div className="flex justify-center">
+            <div className="group relative bg-gray-50 px-4 md:px-5 py-3 rounded-lg md:rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300">
+              <div className="relative z-10 flex items-center gap-3">
+                <div className="text-2xl md:text-3xl">⭐</div>
+                <div>
+                  <p className="text-[10px] md:text-sm text-gray-600 font-medium mb-0.5">ELO Rating</p>
+                  <p className="text-xl md:text-3xl font-bold text-black">{user.elo || 1000}</p>
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
 
         {/* Room Settings Modal */}
         {showSettings && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-gray-100/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-gradient-to-br from-gray-900 to-black rounded-2xl p-8 max-w-md w-full shadow-2xl border-2 border-green-500/50"
+              className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
             >
-              <h2 className="text-2xl font-bold mb-6 text-green-400">⚙️ Room Settings</h2>
+              <h2 className="text-2xl font-bold mb-6 text-black">⚙️ Room Settings</h2>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-green-400 mb-2">
+                  <label className="block text-sm font-semibold text-black mb-2">
                     Category
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 border-2 border-green-500/50 text-green-400 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-400"
+                    className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-200 text-black rounded-lg focus:ring-2 focus:ring-black focus:border-black"
                   >
                     <option value="General Knowledge">General Knowledge</option>
                     <option value="Science">Science</option>
@@ -216,8 +292,8 @@ export default function Home() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-green-400 mb-2">
-                    Number of Questions: <span className="text-green-300">{questionsCount}</span>
+                  <label className="block text-sm font-semibold text-black mb-2">
+                    Number of Questions: <span className="text-gray-700">{questionsCount}</span>
                   </label>
                   <input
                     type="range"
@@ -225,13 +301,13 @@ export default function Home() {
                     max="20"
                     value={questionsCount}
                     onChange={(e) => setQuestionsCount(parseInt(e.target.value))}
-                    className="w-full accent-green-500"
+                    className="w-full accent-black"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-green-400 mb-2">
-                    Time per Question: <span className="text-green-300">{timePerQuestion}s</span>
+                  <label className="block text-sm font-semibold text-black mb-2">
+                    Time per Question: <span className="text-gray-700">{timePerQuestion}s</span>
                   </label>
                   <input
                     type="range"
@@ -239,7 +315,7 @@ export default function Home() {
                     max="30"
                     value={timePerQuestion}
                     onChange={(e) => setTimePerQuestion(parseInt(e.target.value))}
-                    className="w-full accent-green-500"
+                    className="w-full accent-black"
                   />
                 </div>
               </div>
@@ -247,13 +323,13 @@ export default function Home() {
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => setShowSettings(false)}
-                  className="flex-1 bg-gradient-to-r from-gray-800 to-gray-700 text-gray-300 py-3 rounded-lg font-semibold hover:from-gray-700 hover:to-gray-600 transition border border-gray-600"
+                  className="flex-1 bg-gray-200 text-black py-3 rounded-lg font-semibold hover:bg-gray-300 transition border border-gray-300"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={createRoom}
-                  className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-lg font-semibold hover:from-green-500 hover:to-emerald-500 transition shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                  className="flex-1 bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition shadow-lg"
                 >
                   Create Room
                 </button>

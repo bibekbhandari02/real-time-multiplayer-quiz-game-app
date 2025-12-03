@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import axios from '../api/axios';
 import { useAuthStore } from '../store/authStore';
 import { useToastStore } from '../store/toastStore';
 
@@ -83,7 +83,7 @@ export default function PowerupShop() {
       case 'rare':
         return 'border-blue-400';
       case 'epic':
-        return 'border-purple-400';
+        return 'border-gray-400';
       case 'legendary':
         return 'border-yellow-400';
       default:
@@ -96,7 +96,7 @@ export default function PowerupShop() {
       <div className="max-w-6xl mx-auto">
         <button
           onClick={() => navigate('/')}
-          className="text-white mb-6 hover:underline"
+          className="text-black mb-6 hover:underline"
         >
           ← Back to Home
         </button>
@@ -137,7 +137,7 @@ export default function PowerupShop() {
                   <div className="bg-white rounded-lg p-6 h-full flex flex-col">
                     {/* Rarity Badge */}
                     <div className="flex justify-between items-start mb-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getRarityColor(powerup.rarity)}`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold text-black bg-gradient-to-r ${getRarityColor(powerup.rarity)}`}>
                         {powerup.rarity.toUpperCase()}
                       </span>
                       {powerup.quantity > 0 && (
@@ -177,7 +177,7 @@ export default function PowerupShop() {
                       <button
                         onClick={() => purchasePowerup(powerup.key, 1)}
                         disabled={purchasing === powerup.key || user.coins < powerup.cost}
-                        className="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-gradient-to-r from-primary to-secondary text-black py-3 rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {purchasing === powerup.key ? (
                           <span className="flex items-center justify-center gap-2">
@@ -192,7 +192,7 @@ export default function PowerupShop() {
                       <button
                         onClick={() => purchasePowerup(powerup.key, 5)}
                         disabled={purchasing === powerup.key || user.coins < powerup.cost * 5}
-                        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-2 rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-black py-2 rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                       >
                         Buy 5 for 🪙 {powerup.cost * 5}
                       </button>

@@ -55,6 +55,15 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
 });
 
+// Serve static files from React build in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static('client/dist'));
+  
+  app.get('*', (req, res) => {
+    res.sendFile('index.html', { root: 'client/dist' });
+  });
+}
+
 // Socket.IO setup
 setupSocketHandlers(io);
 

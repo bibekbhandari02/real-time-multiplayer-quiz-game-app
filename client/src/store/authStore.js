@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import axios from 'axios';
+import axios from '../api/axios';
 
 export const useAuthStore = create(
   persist(
@@ -21,6 +21,11 @@ export const useAuthStore = create(
           set({ user: data.user });
         } catch (error) {
           console.error('Failed to refresh user data:', error);
+          // If token is invalid or expired, clear auth state
+          if (error.response?.status === 401 || error.response?.status === 403 || error.response?.status === 500) {
+            console.log('Invalid token detected, logging out...');
+            set({ token: null, user: null });
+          }
         }
       }
     }),

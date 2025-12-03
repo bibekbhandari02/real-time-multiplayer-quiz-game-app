@@ -57,10 +57,13 @@ app.get('/health', (req, res) => {
 
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('client/dist'));
+  const path = await import('path');
+  const __dirname = path.dirname(new URL(import.meta.url).pathname);
+  
+  app.use(express.static(path.join(__dirname, '../client/dist')));
   
   app.get('*', (req, res) => {
-    res.sendFile('index.html', { root: 'client/dist' });
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
   });
 }
 
@@ -70,12 +73,17 @@ setupSocketHandlers(io);
 // Set io instance for matchmaking
 setIoInstance(io);
 
-// Database connections
-await connectDB();
-await connectRedis();
-
+// Start server first, then connect to databases
 const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🎮 WebSocket server ready`);
+  
+  // Database connections (non-blocking)
+  try {
+    await connectDB();
+    await connectRedis();
+  } catch (error) {
+    console.error('Database connection error:', error);
+  }
 });

@@ -16,8 +16,10 @@ const gameRoomSchema = new mongoose.Schema({
     questionsCount: { type: Number, default: 10 },
     timePerQuestion: { type: Number, default: 15 },
     category: String,
-    difficulty: String,
-    isPrivate: { type: Boolean, default: false }
+    difficulty: String, // Legacy field, kept for backwards compatibility
+    difficultyMode: { type: String, default: 'mixed' }, // New field: 'mixed', 'progressive', 'easy', 'medium', 'hard'
+    isPrivate: { type: Boolean, default: false },
+    isRanked: { type: Boolean, default: false }
   },
   status: { type: String, enum: ['waiting', 'playing', 'finished'], default: 'waiting' },
   currentQuestion: { type: Number, default: 0 },

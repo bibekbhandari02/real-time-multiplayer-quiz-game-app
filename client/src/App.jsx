@@ -77,21 +77,21 @@ function AppContent() {
               initial={{ opacity: 0, scale: 0.8, y: 50 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 50 }}
-              className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border border-gray-200"
+              className="bg-[#1E293B] rounded-2xl p-8 max-w-md w-full shadow-2xl border border-[#334155]"
             >
               <div className="text-center mb-6">
-                <div className="w-20 h-20 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl shadow-lg">
+                <div className="w-20 h-20 bg-[#22C55E] rounded-full mx-auto mb-4 flex items-center justify-center text-4xl shadow-lg">
                   🎮
                 </div>
-                <h2 className="text-3xl font-bold mb-2 text-black">Game Invite!</h2>
-                <p className="text-gray-600 text-lg">
-                  <span className="font-bold text-black">{invite.fromUsername}</span> invited you to play
+                <h2 className="text-3xl font-bold mb-2 text-[#F1F5F9]">Game Invite!</h2>
+                <p className="text-[#CBD5E1] text-lg">
+                  <span className="font-bold text-[#F1F5F9]">{invite.fromUsername}</span> invited you to play
                 </p>
               </div>
 
-              <div className="bg-gray-100 p-4 rounded-lg mb-6 border border-gray-200">
-                <p className="text-sm text-gray-600 text-center mb-1">Room Code</p>
-                <p className="text-3xl font-bold text-center text-black tracking-wider">
+              <div className="bg-[#0F172A] p-4 rounded-lg mb-6 border border-[#334155]">
+                <p className="text-sm text-[#CBD5E1] text-center mb-1">Room Code</p>
+                <p className="text-3xl font-bold text-center text-[#F1F5F9] tracking-wider">
                   {invite.roomCode}
                 </p>
               </div>
@@ -99,13 +99,13 @@ function AppContent() {
               <div className="flex gap-3">
                 <button
                   onClick={declineInvite}
-                  className="flex-1 bg-gray-200 text-black py-3 rounded-lg font-semibold hover:bg-gray-300 transition border border-gray-300"
+                  className="flex-1 bg-[#334155] text-[#F1F5F9] py-3 rounded-lg font-semibold hover:bg-[#475569] transition border border-[#475569]"
                 >
                   Decline
                 </button>
                 <button
                   onClick={acceptInvite}
-                  className="flex-1 bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition shadow-lg"
+                  className="flex-1 bg-[#22C55E] text-white py-3 rounded-lg font-semibold hover:bg-[#22C55E] transition shadow-lg"
                 >
                   Accept & Join
                 </button>

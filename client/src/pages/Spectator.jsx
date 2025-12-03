@@ -16,6 +16,9 @@ export default function Spectator() {
   const [spectatorCount, setSpectatorCount] = useState(0);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [playersAnswered, setPlayersAnswered] = useState(new Set());
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
 
   useEffect(() => {
     if (!socket || !user) return;
@@ -72,8 +75,13 @@ export default function Spectator() {
         questionNumber: data.index + 1,
         question: data.question.question,
         options: data.question.options,
-        correctAnswer: data.question.correctAnswer
+        correctAnswer: data.question.correctAnswer,
+        difficulty: data.question.difficulty,
+        category: data.question.category
       });
+      setPlayersAnswered(new Set());
+      setTimeLeft(15);
+      setShowCorrectAnswer(false);
     });
 
     socket.on('answer_result', (data) => {
@@ -90,6 +98,9 @@ export default function Spectator() {
 
     socket.on('player_answered', (data) => {
       console.log('✅ Player answered:', data);
+      // Track who has answered
+      setPlayersAnswered(prev => new Set([...prev, data.username]));
+      
       // Update player scores in real-time
       setPlayers(prev => 
         prev.map(p => 
@@ -98,6 +109,11 @@ export default function Spectator() {
             : p
         )
       );
+    });
+
+    socket.on('all_answered', () => {
+      console.log('✅ All players answered');
+      setShowCorrectAnswer(true);
     });
 
     socket.on('leaderboard_update', (data) => {
@@ -116,6 +132,8 @@ export default function Spectator() {
       console.log('➡️ Moving to next question:', data);
       // Clear current question briefly before new one arrives
       setCurrentQuestion(null);
+      setPlayersAnswered(new Set());
+      setShowCorrectAnswer(false);
     });
 
     return () => {
@@ -131,14 +149,33 @@ export default function Spectator() {
       socket.off('leaderboard_update');
       socket.off('game_over');
       socket.off('next_question');
+      socket.off('all_answered');
     };
   }, [socket, user, roomCode]);
 
+  // Timer countdown effect
+  useEffect(() => {
+    if (!currentQuestion || gameState?.status !== 'playing') return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 0) {
+          clearInterval(timer);
+          setShowCorrectAnswer(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [currentQuestion, gameState?.status]);
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#3B82F6] mx-auto mb-4"></div>
           <p className="text-white text-xl">Joining as spectator...</p>
         </div>
       </div>
@@ -147,18 +184,18 @@ export default function Spectator() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#0F172A] flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-2xl p-8 max-w-md w-full text-center"
+          className="bg-[#1E293B] rounded-2xl p-8 max-w-md w-full text-center"
         >
           <div className="text-6xl mb-4">❌</div>
-          <h2 className="text-2xl font-bold mb-4 text-black">Cannot Join</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <h2 className="text-2xl font-bold mb-4 text-[#F1F5F9]">Cannot Join</h2>
+          <p className="text-[#CBD5E1] mb-6">{error}</p>
           <button
             onClick={() => navigate('/')}
-            className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition"
+            className="bg-[#3B82F6] text-white px-6 py-3 rounded-lg hover:bg-[#2563EB] transition"
           >
             Back to Home
           </button>
@@ -168,33 +205,43 @@ export default function Spectator() {
   }
 
   return (
-    <div className="min-h-screen p-4 pb-20 bg-gray-100">
+    <div className="min-h-screen p-4 pb-20 bg-[#0F172A]">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-xl p-4 mb-4 flex justify-between items-center border border-gray-200">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-2xl">👁️</span>
-              <h1 className="text-black text-xl font-bold">Spectator Mode</h1>
+        <div className="bg-[#1E293B] rounded-xl p-4 mb-4 border border-[#334155]">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-[#334155] rounded-xl flex items-center justify-center text-2xl shadow-lg">
+                👁️
+              </div>
+              <div>
+                <h1 className="text-[#F1F5F9] text-xl font-bold">Spectator Mode</h1>
+                <p className="text-[#CBD5E1] text-sm">Room Code: <span className="font-mono font-bold text-[#3B82F6]">{roomCode}</span></p>
+              </div>
             </div>
-            <p className="text-gray-600 text-sm">Room: {roomCode}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-gray-600 text-sm">Spectators</p>
-            <p className="text-black text-2xl font-bold">{spectatorCount}</p>
+            <div className="flex gap-4">
+              <div className="bg-[#334155] px-4 py-2 rounded-lg border border-[#475569]">
+                <p className="text-[#94A3B8] text-xs uppercase tracking-wide">Players</p>
+                <p className="text-[#F1F5F9] text-2xl font-bold">{players.length}</p>
+              </div>
+              <div className="bg-[#334155] px-4 py-2 rounded-lg border border-[#475569]">
+                <p className="text-[#94A3B8] text-xs uppercase tracking-wide">Watching</p>
+                <p className="text-[#3B82F6] text-2xl font-bold">{spectatorCount}</p>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Game Status */}
-        <div className="bg-white rounded-xl p-6 mb-4 border border-gray-200">
+        <div className="bg-[#1E293B] rounded-xl p-6 mb-4 border border-[#334155]">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-black">
+            <h2 className="text-xl font-bold text-[#F1F5F9]">
               {gameState?.status === 'waiting' && '⏳ Waiting for game to start...'}
               {gameState?.status === 'playing' && '🎮 Game in Progress'}
               {gameState?.status === 'finished' && '🏁 Game Finished'}
             </h2>
             {gameState?.status === 'playing' && currentQuestion && (
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-[#CBD5E1]">
                 Question {currentQuestion.questionNumber} / {gameState.settings.questionsCount}
               </div>
             )}
@@ -202,91 +249,192 @@ export default function Spectator() {
 
           {/* Current Question (if playing) */}
           {gameState?.status === 'playing' && currentQuestion && (
-            <div className="bg-gray-50 p-6 rounded-lg mb-6 border border-gray-200">
-              <div className="flex justify-between items-center mb-4">
-                <p className="text-lg font-semibold flex-1 text-black">{currentQuestion.question}</p>
+            <div className="bg-[#0F172A] p-6 rounded-lg mb-6 border border-[#475569]">
+              {/* Question Header */}
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-2">
+                  {currentQuestion.difficulty && (
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                      currentQuestion.difficulty === 'easy' ? 'bg-[#22C55E] text-white' :
+                      currentQuestion.difficulty === 'medium' ? 'bg-[#F97316] text-white' :
+                      'bg-[#EF4444] text-white'
+                    }`}>
+                      {currentQuestion.difficulty}
+                    </span>
+                  )}
+                  {currentQuestion.category && (
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#334155] text-[#CBD5E1] border border-[#475569]">
+                      {currentQuestion.category}
+                    </span>
+                  )}
+                </div>
+                <div className={`px-4 py-2 rounded-lg font-bold text-xl ${
+                  timeLeft <= 5 ? 'bg-[#EF4444] text-white animate-pulse' : 'bg-[#334155] text-[#FACC15]'
+                }`}>
+                  ⏱️ {timeLeft}s
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {currentQuestion.options.map((option, index) => (
-                  <div
-                    key={index}
-                    className="bg-white p-3 rounded-lg border border-gray-300 hover:border-gray-400 transition text-black"
-                  >
-                    <span className="font-bold mr-2 text-black">{String.fromCharCode(65 + index)}.</span>
-                    {option}
+
+              {/* Question Text */}
+              <div className="bg-[#1E293B] p-4 rounded-lg mb-4 border border-[#334155]">
+                <p className="text-lg md:text-xl font-semibold text-[#F1F5F9]">{currentQuestion.question}</p>
+              </div>
+
+              {/* Options */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                {currentQuestion.options.map((option, index) => {
+                  const isCorrect = showCorrectAnswer && index === currentQuestion.correctAnswer;
+                  
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        isCorrect
+                          ? 'bg-[#22C55E] border-[#16A34A] text-white shadow-lg shadow-[#22C55E]/30'
+                          : 'bg-[#334155] border-[#475569] text-[#F1F5F9] hover:border-[#3B82F6]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                          isCorrect ? 'bg-white text-[#22C55E]' : 'bg-[#1E293B] text-[#CBD5E1]'
+                        }`}>
+                          {String.fromCharCode(65 + index)}
+                        </span>
+                        <span className="flex-1">{option}</span>
+                        {isCorrect && <span className="text-2xl">✓</span>}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* Player Answer Status */}
+              <div className="bg-[#1E293B] p-4 rounded-lg border border-[#334155]">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-semibold text-[#CBD5E1]">
+                    📊 Players Answered: {playersAnswered.size} / {players.length}
+                  </p>
+                  <div className="flex gap-1">
+                    {players.map((player, idx) => (
+                      <div
+                        key={idx}
+                        className={`w-3 h-3 rounded-full transition-all ${
+                          playersAnswered.has(player.username)
+                            ? 'bg-[#22C55E] shadow-lg shadow-[#22C55E]/50'
+                            : 'bg-[#475569]'
+                        }`}
+                        title={player.username}
+                      />
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div className="mt-4 text-sm text-gray-600 text-center">
-                <p>⏱️ Players are answering...</p>
+                </div>
+                <div className="w-full bg-[#334155] rounded-full h-2">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(playersAnswered.size / players.length) * 100}%` }}
+                    className="bg-gradient-to-r from-[#3B82F6] to-[#22C55E] h-2 rounded-full transition-all duration-300"
+                  />
+                </div>
               </div>
             </div>
           )}
 
           {gameState?.status === 'playing' && !currentQuestion && (
-            <div className="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center mb-6">
+            <div className="bg-[#0F172A] border border-[#475569] rounded-lg p-6 text-center mb-6">
               <div className="animate-pulse">
-                <p className="text-lg font-semibold text-black">⏳ Waiting for next question...</p>
+                <p className="text-lg font-semibold text-[#F1F5F9]">⏳ Waiting for next question...</p>
               </div>
             </div>
           )}
 
           {gameState?.status === 'waiting' && (
-            <div className="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center">
-              <p className="text-lg font-semibold text-black">⏳ Game hasn't started yet</p>
-              <p className="text-sm text-gray-600 mt-2">Waiting for the host to start the game...</p>
+            <div className="bg-[#0F172A] border border-[#475569] rounded-lg p-6 text-center">
+              <p className="text-lg font-semibold text-[#F1F5F9]">⏳ Game hasn't started yet</p>
+              <p className="text-sm text-[#CBD5E1] mt-2">Waiting for the host to start the game...</p>
             </div>
           )}
         </div>
 
         {/* Leaderboard */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <h2 className="text-xl font-bold mb-4 text-black">🏆 Live Leaderboard</h2>
+        <div className="bg-[#1E293B] rounded-xl p-6 border border-[#334155]">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-[#F1F5F9]">🏆 Live Leaderboard</h2>
+            {gameState?.status === 'playing' && (
+              <span className="px-3 py-1 bg-[#22C55E] text-white text-xs font-bold rounded-full animate-pulse">
+                LIVE
+              </span>
+            )}
+          </div>
           <div className="space-y-2">
-            {players
-              .sort((a, b) => b.score - a.score)
-              .map((player, index) => (
-                <motion.div
-                  key={player.username}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ 
-                    opacity: 1, 
-                    x: 0,
-                    scale: [1, 1.02, 1]
-                  }}
-                  transition={{ 
-                    delay: index * 0.05,
-                    scale: { duration: 0.3 }
-                  }}
-                  className={`flex items-center justify-between p-4 rounded-lg transition-colors ${
-                    index === 0 ? 'bg-orange-500 text-white border border-orange-600' :
-                    index === 1 ? 'bg-gray-200 text-black border border-gray-300' :
-                    index === 2 ? 'bg-gray-300 text-black border border-gray-400' :
-                    'bg-gray-50 text-black'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl font-bold">
-                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
-                    </span>
-                    <div>
-                      <p className="font-bold">{player.username}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <motion.p 
-                      key={player.score}
-                      initial={{ scale: 1.5 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 0.5 }}
-                      className="text-2xl font-bold"
+            {players.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-[#CBD5E1]">No players yet</p>
+              </div>
+            ) : (
+              players
+                .sort((a, b) => b.score - a.score)
+                .map((player, index) => {
+                  const hasAnswered = playersAnswered.has(player.username);
+                  
+                  return (
+                    <motion.div
+                      key={player.username}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ 
+                        opacity: 1, 
+                        x: 0,
+                        scale: [1, 1.02, 1]
+                      }}
+                      transition={{ 
+                        delay: index * 0.05,
+                        scale: { duration: 0.3 }
+                      }}
+                      className={`flex items-center justify-between p-4 rounded-lg transition-all ${
+                        index === 0 ? 'bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-white border-2 border-[#F59E0B] shadow-lg shadow-[#F59E0B]/30' :
+                        index === 1 ? 'bg-[#334155] text-[#F1F5F9] border-2 border-[#94A3B8]' :
+                        index === 2 ? 'bg-[#475569] text-[#F1F5F9] border-2 border-[#CD7F32]' :
+                        'bg-[#334155] text-[#F1F5F9] border border-[#475569]'
+                      }`}
                     >
-                      {player.score}
-                    </motion.p>
-                    <p className={`text-xs ${index === 0 ? 'text-white' : 'text-gray-500'}`}>points</p>
-                  </div>
-                </motion.div>
-              ))}
+                      <div className="flex items-center gap-3 flex-1">
+                        <span className="text-2xl font-bold min-w-[40px]">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                        </span>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold">{player.username}</p>
+                            {gameState?.status === 'playing' && (
+                              <span className={`w-2 h-2 rounded-full ${
+                                hasAnswered ? 'bg-[#22C55E] animate-pulse' : 'bg-[#94A3B8]'
+                              }`} title={hasAnswered ? 'Answered' : 'Thinking...'} />
+                            )}
+                          </div>
+                          {gameState?.status === 'playing' && (
+                            <p className={`text-xs ${index === 0 ? 'text-white/80' : 'text-[#94A3B8]'}`}>
+                              {hasAnswered ? '✓ Answered' : '⏳ Thinking...'}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <motion.p 
+                          key={player.score}
+                          initial={{ scale: 1.5, color: '#FACC15' }}
+                          animate={{ scale: 1, color: 'inherit' }}
+                          transition={{ duration: 0.5 }}
+                          className="text-2xl font-bold"
+                        >
+                          {player.score}
+                        </motion.p>
+                        <p className={`text-xs ${index === 0 ? 'text-white/80' : 'text-[#94A3B8]'}`}>points</p>
+                      </div>
+                    </motion.div>
+                  );
+                })
+            )}
           </div>
         </div>
 
@@ -294,7 +442,7 @@ export default function Spectator() {
         <div className="mt-4">
           <button
             onClick={() => navigate('/')}
-            className="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition font-semibold"
+            className="w-full bg-[#EF4444] text-white py-3 rounded-lg hover:bg-[#DC2626] transition font-semibold"
           >
             Leave Spectator Mode
           </button>

@@ -26,11 +26,11 @@ export default function Leaderboard() {
   };
 
   return (
-    <div className="min-h-screen p-3 md:p-4 pb-20 md:pb-4 bg-gray-100">
+    <div className="min-h-screen p-3 md:p-4 pb-20 md:pb-4 bg-[#0F172A]">
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate('/')}
-          className="text-black mb-4 md:mb-6 hover:text-gray-700 text-sm md:text-base"
+          className="text-[#F1F5F9] mb-4 md:mb-6 hover:text-[#3B82F6] text-sm md:text-base"
         >
           ← Back to Home
         </button>
@@ -38,17 +38,17 @@ export default function Leaderboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-2xl"
+          className="bg-[#1E293B] rounded-xl md:rounded-2xl p-4 md:p-8 shadow-2xl"
         >
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-black">🏆 Global Leaderboard</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-[#F1F5F9]">🏆 Global Leaderboard</h2>
           
           <div className="flex gap-2 mb-4 md:mb-6 overflow-x-auto pb-2">
             <button 
               onClick={() => setSortBy('elo')}
               className={`px-3 md:px-4 py-2 rounded-lg font-semibold transition text-sm md:text-base whitespace-nowrap ${
                 sortBy === 'elo' 
-                  ? 'bg-black text-white' 
-                  : 'bg-gray-50 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                  ? 'bg-gradient-to-r from-[#3B82F6] to-[#FACC15] text-white' 
+                  : 'bg-[#334155] text-[#CBD5E1] hover:bg-[#334155] border border-[#475569]'
               }`}
             >
               ELO Rating
@@ -57,8 +57,8 @@ export default function Leaderboard() {
               onClick={() => setSortBy('wins')}
               className={`px-3 md:px-4 py-2 rounded-lg font-semibold transition text-sm md:text-base whitespace-nowrap ${
                 sortBy === 'wins' 
-                  ? 'bg-black text-white' 
-                  : 'bg-gray-50 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                  ? 'bg-[#3B82F6] text-white' 
+                  : 'bg-[#334155] text-[#CBD5E1] hover:bg-[#334155] border border-[#475569]'
               }`}
             >
               Most Wins
@@ -67,8 +67,8 @@ export default function Leaderboard() {
               onClick={() => setSortBy('accuracy')}
               className={`px-3 md:px-4 py-2 rounded-lg font-semibold transition text-sm md:text-base whitespace-nowrap ${
                 sortBy === 'accuracy' 
-                  ? 'bg-black text-white' 
-                  : 'bg-gray-50 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                  ? 'bg-[#3B82F6] text-white' 
+                  : 'bg-[#334155] text-[#CBD5E1] hover:bg-[#334155] border border-[#475569]'
               }`}
             >
               Accuracy
@@ -77,12 +77,12 @@ export default function Leaderboard() {
 
           {loading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
-              <p className="text-gray-500 mt-4">Loading leaderboard...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3B82F6] mx-auto"></div>
+              <p className="text-[#94A3B8] mt-4">Loading leaderboard...</p>
             </div>
           ) : leaderboard.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No players yet. Be the first to play!</p>
+              <p className="text-[#94A3B8] text-lg">No players yet. Be the first to play!</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -96,8 +96,8 @@ export default function Leaderboard() {
                     transition={{ delay: index * 0.05 }}
                     className={`flex justify-between items-center p-3 md:p-4 rounded-lg ${
                       rank <= 3 
-                        ? 'bg-orange-500 text-white border-2 border-orange-600' 
-                        : 'bg-gray-50 border border-gray-200 hover:border-gray-300'
+                        ? 'bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-white border-2 border-[#F59E0B]' 
+                        : 'bg-[#334155] border border-[#334155] hover:border-[#475569]'
                     } transition`}
                   >
                     <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
@@ -105,8 +105,8 @@ export default function Leaderboard() {
                         {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className={`font-bold text-base md:text-lg truncate ${rank <= 3 ? 'text-white' : 'text-black'}`}>{player.username}</p>
-                        <p className={`text-xs md:text-sm ${rank <= 3 ? 'text-white/90' : 'text-gray-600'}`}>
+                        <p className={`font-bold text-base md:text-lg truncate ${rank <= 3 ? 'text-white' : 'text-[#F1F5F9]'}`}>{player.username}</p>
+                        <p className={`text-xs md:text-sm ${rank <= 3 ? 'text-white/90' : 'text-[#CBD5E1]'}`}>
                           {player.stats?.gamesPlayed || 0} games
                         </p>
                       </div>
@@ -114,14 +114,14 @@ export default function Leaderboard() {
                     <div className="text-right flex-shrink-0">
                       {sortBy === 'elo' && (
                         <>
-                          <p className={`font-bold text-xl ${rank <= 3 ? 'text-white' : 'text-black'}`}>{player.elo || 1000}</p>
-                          <p className={`text-sm ${rank <= 3 ? 'text-white/90' : 'text-gray-600'}`}>{player.stats?.gamesWon || 0} wins</p>
+                          <p className={`font-bold text-xl ${rank <= 3 ? 'text-white' : 'text-[#F1F5F9]'}`}>{player.elo || 1000}</p>
+                          <p className={`text-sm ${rank <= 3 ? 'text-white/90' : 'text-[#CBD5E1]'}`}>{player.stats?.gamesWon || 0} wins</p>
                         </>
                       )}
                       {sortBy === 'wins' && (
                         <>
-                          <p className={`font-bold text-xl ${rank <= 3 ? 'text-white' : 'text-black'}`}>{player.stats?.gamesWon || 0} wins</p>
-                          <p className={`text-sm ${rank <= 3 ? 'text-white/90' : 'text-gray-600'}`}>
+                          <p className={`font-bold text-xl ${rank <= 3 ? 'text-white' : 'text-[#F1F5F9]'}`}>{player.stats?.gamesWon || 0} wins</p>
+                          <p className={`text-sm ${rank <= 3 ? 'text-white/90' : 'text-[#CBD5E1]'}`}>
                             {player.stats?.gamesPlayed > 0 
                               ? ((player.stats.gamesWon / player.stats.gamesPlayed) * 100).toFixed(1)
                               : 0}% win rate
@@ -130,8 +130,8 @@ export default function Leaderboard() {
                       )}
                       {sortBy === 'accuracy' && (
                         <>
-                          <p className={`font-bold text-xl ${rank <= 3 ? 'text-white' : 'text-black'}`}>{player.stats?.accuracy?.toFixed(1) || 0}%</p>
-                          <p className={`text-sm ${rank <= 3 ? 'text-white/90' : 'text-gray-600'}`}>{player.stats?.gamesWon || 0} wins</p>
+                          <p className={`font-bold text-xl ${rank <= 3 ? 'text-white' : 'text-[#F1F5F9]'}`}>{player.stats?.accuracy?.toFixed(1) || 0}%</p>
+                          <p className={`text-sm ${rank <= 3 ? 'text-white/90' : 'text-[#CBD5E1]'}`}>{player.stats?.gamesWon || 0} wins</p>
                         </>
                       )}
                     </div>

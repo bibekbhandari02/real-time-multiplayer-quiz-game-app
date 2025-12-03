@@ -9,8 +9,9 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #e5e7eb;
+  background: #0F172A;
   min-height: 100vh;
+  color: #F1F5F9;
 }
 
 /* Custom Scrollbar */

@@ -1,10 +1,10 @@
 import GameRoom from '../../models/GameRoom.js';
 import Question from '../../models/Question.js';
 import User from '../../models/User.js';
-import { calculateScore, updateElo } from '../../utils/scoring.js';
+import { calculateScore, updateElo, getScoreBreakdown } from '../../utils/scoring.js';
 import { antiCheatDetector } from '../../services/antiCheatService.js';
 import { checkAchievements } from '../../services/achievementService.js';
-import { generateQuestions } from '../../services/aiService.js';
+import { generateQuestionsWithFallback, enhanceQuestion, validateQuestion } from '../../services/aiService.js';
 
 export const handleGameEvents = (socket, io) => {
   socket.on('start_game', async (data) => {
@@ -15,37 +15,63 @@ export const handleGameEvents = (socket, io) => {
         return socket.emit('error', { message: 'Only host can start the game' });
       }
 
-      console.log(`🎮 Generating ${room.settings.questionsCount} AI questions for category: ${room.settings.category}`);
+      const category = room.settings.category || 'General Knowledge';
+      const difficultyMode = room.settings.difficultyMode || 'mixed';
+      const count = room.settings.questionsCount || 10;
+
+      console.log(`🎮 Generating ${count} questions (${difficultyMode} mode) for category: ${category}`);
       
       // Notify players that questions are being generated
+      const modeText = difficultyMode === 'mixed' ? 'mixed difficulty' : 
+                       difficultyMode === 'progressive' ? 'progressively harder' :
+                       difficultyMode;
+      
       io.to(data.roomCode).emit('generating_questions', { 
-        message: 'Generating questions with AI...' 
+        message: `🤖 AI is crafting ${count} ${modeText} questions about ${category}...` 
       });
 
-      // Generate questions using AI
-      const aiQuestions = await generateQuestions(
-        room.settings.category || 'General Knowledge',
-        'medium',
-        room.settings.questionsCount || 10
-      );
+      // Generate questions using enhanced AI with fallback
+      const aiQuestions = await generateQuestionsWithFallback(category, difficultyMode, count);
 
       if (!aiQuestions || aiQuestions.length === 0) {
         console.error('❌ AI question generation failed');
         return socket.emit('error', { 
           message: 'Failed to generate questions. Please check your Gemini API key and try again.' 
         });
-      } else {
-        // Save AI-generated questions to database
-        console.log(`✅ Generated ${aiQuestions.length} AI questions`);
-        const savedQuestions = await Question.insertMany(
-          aiQuestions.map(q => ({
-            ...q,
-            category: room.settings.category,
-            aiGenerated: true
-          }))
-        );
-        room.questions = savedQuestions.map(q => q._id);
       }
+
+      // Validate and enhance questions
+      const validatedQuestions = aiQuestions
+        .map(q => {
+          const validation = validateQuestion(q);
+          if (!validation.valid) {
+            console.warn(`⚠️ Invalid question filtered:`, validation.issues);
+            return null;
+          }
+          return enhanceQuestion(q, category, q.difficulty || 'medium');
+        })
+        .filter(q => q !== null);
+
+      if (validatedQuestions.length === 0) {
+        console.error('❌ No valid questions after validation');
+        return socket.emit('error', { 
+          message: 'Failed to generate valid questions. Please try again.' 
+        });
+      }
+
+      console.log(`✅ Generated ${validatedQuestions.length} validated AI questions`);
+      
+      // Save validated questions to database
+      const savedQuestions = await Question.insertMany(
+        validatedQuestions.map(q => ({
+          ...q,
+          category: category,
+          aiGenerated: true,
+          generatedAt: new Date()
+        }))
+      );
+      
+      room.questions = savedQuestions.map(q => q._id);
 
       room.status = 'playing';
       room.startedAt = new Date();
@@ -80,13 +106,40 @@ export const handleGameEvents = (socket, io) => {
 
       const question = room.questions[questionIndex];
       const isCorrect = question.correctAnswer === answer;
-      const score = isCorrect ? calculateScore(timeSpent, room.settings.timePerQuestion) : 0;
+      
+      // Get player's current streak
+      const currentPlayer = room.players.find(p => p.userId.toString() === socket.userId);
+      let currentStreak = 0;
+      
+      if (currentPlayer && currentPlayer.answers.length > 0) {
+        // Count consecutive correct answers from the end
+        for (let i = currentPlayer.answers.length - 1; i >= 0; i--) {
+          if (currentPlayer.answers[i].correct) {
+            currentStreak++;
+          } else {
+            break;
+          }
+        }
+      }
+      
+      // Calculate score with enhanced system
+      const difficulty = question.difficulty || 'medium';
+      const score = calculateScore(
+        timeSpent, 
+        room.settings.timePerQuestion, 
+        difficulty, 
+        currentStreak, 
+        isCorrect
+      );
       
       // Debug logging
       console.log(`🔍 Answer check - Question: "${question.question.substring(0, 50)}..."`);
+      console.log(`   Difficulty: ${difficulty}`);
+      console.log(`   Current streak: ${currentStreak}`);
       console.log(`   Correct answer index: ${question.correctAnswer} (type: ${typeof question.correctAnswer})`);
       console.log(`   Player answer index: ${answer} (type: ${typeof answer})`);
       console.log(`   Is correct: ${isCorrect}`);
+      console.log(`   Score awarded: ${score}`);
 
       // Use atomic update to avoid version conflicts
       const updatedRoom = await GameRoom.findOneAndUpdate(
@@ -102,7 +155,8 @@ export const handleGameEvents = (socket, io) => {
               questionId: question._id.toString(),
               answer, 
               time: timeSpent, 
-              correct: isCorrect
+              correct: isCorrect,
+              score: score
             }
           }
         },
@@ -250,6 +304,28 @@ const endGame = async (io, room) => {
   
   await room.save();
 
+  // Update ELO for ranked games FIRST (before updating stats)
+  if (room.settings.isRanked && sortedPlayers.length >= 2) {
+    const winner = await User.findById(sortedPlayers[0].userId);
+    const loser = await User.findById(sortedPlayers[1].userId);
+    
+    if (winner && loser) {
+      const oldWinnerElo = winner.elo;
+      const oldLoserElo = loser.elo;
+      
+      const newElos = updateElo(winner.elo, loser.elo);
+      
+      winner.elo = newElos.winner;
+      loser.elo = newElos.loser;
+      
+      await winner.save();
+      await loser.save();
+      
+      console.log(`🏆 ELO Updated - Winner: ${oldWinnerElo} → ${newElos.winner} (+${newElos.winner - oldWinnerElo})`);
+      console.log(`💔 ELO Updated - Loser: ${oldLoserElo} → ${newElos.loser} (${newElos.loser - oldLoserElo})`);
+    }
+  }
+
   // Update player stats and check achievements
   for (let i = 0; i < sortedPlayers.length; i++) {
     const player = sortedPlayers[i];
@@ -265,19 +341,6 @@ const endGame = async (io, room) => {
     if (won) user.stats.gamesWon++;
     user.stats.totalScore += player.score;
     user.stats.accuracy = ((user.stats.accuracy * (user.stats.gamesPlayed - 1)) + accuracy) / user.stats.gamesPlayed;
-    
-    // Update ELO for ranked games
-    if (room.settings.isRanked && sortedPlayers.length >= 2) {
-      if (i === 0 && sortedPlayers[1]) {
-        const winner = await User.findById(sortedPlayers[0].userId);
-        const loser = await User.findById(sortedPlayers[1].userId);
-        const newElos = updateElo(winner.elo, loser.elo);
-        winner.elo = newElos.winner;
-        loser.elo = newElos.loser;
-        await winner.save();
-        await loser.save();
-      }
-    }
 
     // Check for achievements
     const newAchievements = await checkAchievements(user._id, {
@@ -296,6 +359,9 @@ const endGame = async (io, room) => {
       .find(s => s.userId === player.userId.toString())?.id;
     
     if (socketId) {
+      // Get fresh user data to include updated ELO
+      const freshUser = await User.findById(player.userId);
+      
       io.to(socketId).emit('game_results', {
         won,
         accuracy,
@@ -303,10 +369,11 @@ const endGame = async (io, room) => {
         coinsGained: won ? 50 : 25,
         newAchievements,
         cheatWarning: cheatAnalysis.suspicious,
+        isRanked: room.settings.isRanked || false,
         stats: {
-          gamesPlayed: user.stats.gamesPlayed,
-          gamesWon: user.stats.gamesWon,
-          elo: user.elo
+          gamesPlayed: freshUser.stats.gamesPlayed,
+          gamesWon: freshUser.stats.gamesWon,
+          elo: freshUser.elo
         }
       });
     }

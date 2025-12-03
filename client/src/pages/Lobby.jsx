@@ -12,6 +12,7 @@ export default function Lobby() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [friends, setFriends] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
+  const [rankedCountdown, setRankedCountdown] = useState(null);
   const { user, token } = useAuthStore();
   const navigate = useNavigate();
   const hasJoinedRef = useRef(false);
@@ -47,8 +48,26 @@ export default function Lobby() {
       setGenerating(true);
     });
 
+    socket.on('ranked_starting', ({ countdown }) => {
+      console.log(`🎮 Ranked match starting in ${countdown} seconds`);
+      setRankedCountdown(countdown);
+      setGenerating(true);
+      
+      // Countdown timer
+      const countdownInterval = setInterval(() => {
+        setRankedCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    });
+
     socket.on('game_started', () => {
       setGenerating(false);
+      setRankedCountdown(null);
       navigate(`/game/${roomCode}`);
     });
 
@@ -80,6 +99,7 @@ export default function Lobby() {
       socket.off('player_joined');
       socket.off('player_left');
       socket.off('generating_questions');
+      socket.off('ranked_starting');
       socket.off('game_started');
       socket.off('error');
       socket.off('user_online');
@@ -95,6 +115,16 @@ export default function Lobby() {
   const leaveRoom = () => {
     socket.emit('leave_room', { roomCode, userId: user.id });
     navigate('/');
+  };
+
+  const switchToSpectator = () => {
+    // Leave the room as a player first
+    socket.emit('leave_room', { roomCode, userId: user.id });
+    
+    // Wait a moment for the server to process the leave, then navigate
+    setTimeout(() => {
+      navigate(`/spectator/${roomCode}`);
+    }, 300);
   };
 
   const fetchFriends = async () => {
@@ -134,41 +164,53 @@ export default function Lobby() {
     setShowInviteModal(true);
   };
 
-  if (!room) return <div className="min-h-screen bg-gray-100 flex items-center justify-center text-white text-2xl">Loading...</div>;
+  if (!room) return <div className="min-h-screen bg-[#0F172A] flex items-center justify-center text-white text-2xl">Loading...</div>;
 
   const isHost = room.host.toString() === user.id;
+  const isRanked = room.settings?.isRanked || false;
 
   return (
-    <div className="min-h-screen p-3 md:p-4 pb-20 md:pb-4 bg-gray-100">
+    <div className="min-h-screen p-3 md:p-4 pb-20 md:pb-4 bg-[#0F172A]">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-2xl border border-gray-200"
+          className="bg-[#1E293B] rounded-xl md:rounded-2xl p-4 md:p-8 shadow-2xl border border-[#334155]"
         >
           <div className="mb-4 md:mb-6">
             <div className="flex justify-between items-start mb-3">
               <div className="flex-1">
-                <h1 className="text-xl md:text-3xl font-bold text-black">Room: {roomCode}</h1>
-                <p className="text-gray-600 text-sm md:text-base">Waiting for players...</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <h1 className="text-xl md:text-3xl font-bold text-[#F1F5F9]">Room: {roomCode}</h1>
+                  {isRanked && (
+                    <span className="px-2 py-1 bg-gradient-to-r from-[#FACC15] to-[#F59E0B] text-black text-xs font-bold rounded-full">
+                      RANKED
+                    </span>
+                  )}
+                </div>
+                <p className="text-[#CBD5E1] text-sm md:text-base">
+                  {isRanked ? 'Matched players - Game starting soon...' : 'Waiting for players...'}
+                </p>
               </div>
               <button
                 onClick={leaveRoom}
-                className="bg-red-500 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-red-600 transition text-sm md:text-base whitespace-nowrap ml-2"
+                className="bg-[#EF4444] text-white px-3 md:px-4 py-2 rounded-lg hover:bg-[#DC2626] transition text-sm md:text-base whitespace-nowrap ml-2"
               >
                 Leave
               </button>
             </div>
-            <button
-              onClick={openInviteModal}
-              className="w-full bg-green-500 text-white px-4 py-2 md:py-3 rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-2 text-sm md:text-base shadow-lg"
-            >
-              <span>👥</span> Invite Friends
-            </button>
+            {!isRanked && (
+              <button
+                onClick={openInviteModal}
+                className="w-full bg-[#22C55E] text-white px-4 py-2 md:py-3 rounded-lg hover:bg-[#16A34A] transition flex items-center justify-center gap-2 text-sm md:text-base shadow-lg"
+              >
+                <span>👥</span> Invite Friends
+              </button>
+            )}
           </div>
 
           <div className="mb-4 md:mb-6">
-            <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-black">Players ({players.length}/{room.settings.maxPlayers})</h2>
+            <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-[#F1F5F9]">Players ({players.length}/{room.settings.maxPlayers})</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
               {players.map((player, index) => (
                 <motion.div
@@ -176,95 +218,122 @@ export default function Lobby() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-orange-500 text-white p-3 md:p-4 rounded-lg text-center shadow-lg"
+                  className="bg-gradient-to-r from-[#3B82F6] to-[#2563EB] text-white p-3 md:p-4 rounded-lg text-center shadow-lg shadow-[#3B82F6]/30"
                 >
                   <p className="font-semibold text-sm md:text-base truncate">{player.username}</p>
                   {player.userId.toString() === room.host.toString() && (
-                    <span className="text-xs bg-white text-black px-2 py-1 rounded mt-1 md:mt-2 inline-block font-bold">HOST</span>
+                    <span className="text-xs bg-[#1E293B] text-[#F1F5F9] px-2 py-1 rounded mt-1 md:mt-2 inline-block font-bold">HOST</span>
                   )}
                 </motion.div>
               ))}
             </div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
-            <h3 className="font-bold mb-2 text-black">Game Settings</h3>
+          <div className="bg-[#334155] p-4 rounded-lg mb-6 border border-[#334155]">
+            <h3 className="font-bold mb-2 text-[#F1F5F9]">Game Settings</h3>
             {room.settings.category && (
-              <p className="text-gray-600">Category: <span className="font-semibold text-black">{room.settings.category}</span></p>
+              <p className="text-[#CBD5E1]">Category: <span className="font-semibold text-[#F1F5F9]">{room.settings.category}</span></p>
             )}
-            <p className="text-gray-600">Questions: <span className="text-black font-semibold">{room.settings.questionsCount}</span></p>
-            <p className="text-gray-600">Time per question: <span className="text-black font-semibold">{room.settings.timePerQuestion}s</span></p>
+            <p className="text-[#CBD5E1]">Questions: <span className="text-[#F1F5F9] font-semibold">{room.settings.questionsCount}</span></p>
+            <p className="text-[#CBD5E1]">Time per question: <span className="text-[#F1F5F9] font-semibold">{room.settings.timePerQuestion}s</span></p>
+            {room.settings.difficultyMode && (
+              <p className="text-[#CBD5E1]">Difficulty: <span className="font-semibold text-[#F1F5F9] capitalize">
+                {room.settings.difficultyMode === 'mixed' && 'Mixed'}
+                {room.settings.difficultyMode === 'progressive' && 'Progressive'}
+                {room.settings.difficultyMode === 'easy' && 'Easy Only'}
+                {room.settings.difficultyMode === 'medium' && 'Medium Only'}
+                {room.settings.difficultyMode === 'hard' && 'Hard Only'}
+              </span></p>
+            )}
           </div>
 
           {generating && (
-            <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 text-center">
+            <div className="bg-[#0F172A] border border-[#475569] rounded-lg p-4 text-center">
               <div className="flex items-center justify-center gap-3">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
-                <p className="text-black font-semibold">
-                  🤖 AI is generating questions for {room.settings.category}...
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#3B82F6]"></div>
+                <p className="text-[#F1F5F9] font-semibold">
+                  {rankedCountdown !== null ? (
+                    <>⚔️ Ranked match starting in {rankedCountdown}s...</>
+                  ) : (
+                    <>🤖 AI is generating questions for {room.settings.category}...</>
+                  )}
                 </p>
               </div>
             </div>
           )}
 
-          {!generating && isHost && (
+          {!generating && !isRanked && isHost && (
             <button
               onClick={startGame}
               disabled={players.length < 2}
-              className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
+              className="w-full bg-[#3B82F6] text-white py-3 rounded-lg font-semibold hover:bg-[#2563EB] transition disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
             >
               {players.length < 2 ? 'Waiting for more players...' : 'Start Game'}
             </button>
           )}
 
-          {!generating && !isHost && (
-            <div className="text-center text-gray-600">
-              Waiting for host to start the game...
+          {!generating && !isRanked && !isHost && (
+            <div className="space-y-3">
+              <div className="text-center text-[#CBD5E1] py-2">
+                Waiting for host to start the game...
+              </div>
+              
+              {/* Spectate Option - Only for non-hosts */}
+              <div className="text-center">
+                <button
+                  onClick={switchToSpectator}
+                  className="inline-flex items-center gap-2 text-sm text-[#CBD5E1] hover:text-[#3B82F6] transition-colors px-4 py-2 rounded-lg hover:bg-[#334155]"
+                >
+                  <span>👁️</span>
+                  <span className="underline">Watch as Spectator Instead</span>
+                </button>
+              </div>
             </div>
           )}
 
-          {/* Spectate Option */}
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => navigate(`/spectator/${roomCode}`)}
-              className="text-sm text-gray-600 hover:text-black underline"
-            >
-              👁️ Watch as Spectator Instead
-            </button>
-          </div>
+          {isRanked && !generating && (
+            <div className="bg-gradient-to-r from-[#FACC15]/20 to-[#F59E0B]/20 border border-[#FACC15] rounded-lg p-4 text-center">
+              <p className="text-[#F1F5F9] font-semibold">
+                ⚔️ Ranked Match - Game will start automatically
+              </p>
+              <p className="text-[#CBD5E1] text-sm mt-1">
+                Get ready to compete!
+              </p>
+            </div>
+          )}
         </motion.div>
 
         {/* Invite Friends Modal */}
         {showInviteModal && (
-          <div className="fixed inset-0 bg-gray-100/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-[#0F172A]/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-gray-200"
+              className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl border border-[#334155]"
             >
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold text-black">Invite Friends</h2>
+                <h2 className="text-2xl font-bold text-[#F1F5F9]">Invite Friends</h2>
                 <button
                   onClick={() => setShowInviteModal(false)}
-                  className="text-gray-600 hover:text-black text-2xl"
+                  className="text-[#CBD5E1] hover:text-[#3B82F6] text-2xl"
                 >
                   ×
                 </button>
               </div>
 
-              <p className="text-sm text-gray-600 mb-4">
-                Send room code <span className="font-bold text-black">{roomCode}</span> to your friends
+              <p className="text-sm text-[#CBD5E1] mb-4">
+                Send room code <span className="font-bold text-[#F1F5F9]">{roomCode}</span> to your friends
               </p>
 
               {friends.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600 mb-4">No friends yet</p>
+                  <p className="text-[#CBD5E1] mb-4">No friends yet</p>
                   <button
                     onClick={() => {
                       setShowInviteModal(false);
                       navigate('/friends');
                     }}
-                    className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition shadow-lg"
+                    className="bg-[#3B82F6] text-white px-4 py-2 rounded-lg hover:bg-[#2563EB] transition shadow-lg"
                   >
                     Add Friends
                   </button>
@@ -274,29 +343,29 @@ export default function Lobby() {
                   {friends.map((friend) => (
                     <div
                       key={friend._id}
-                      className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition border border-gray-200"
+                      className="flex justify-between items-center p-3 bg-[#334155] rounded-lg hover:bg-[#0F172A] transition border border-[#334155]"
                     >
                       <div className="flex items-center gap-2 flex-1">
                         {/* Active Status Indicator */}
                         <div className="relative flex-shrink-0">
                           <div className={`w-2 h-2 rounded-full ${
                             onlineUsers.has(friend._id)
-                              ? 'bg-green-500'
+                              ? 'bg-[#22C55E]'
                               : 'bg-gray-400'
                           }`}>
                             {onlineUsers.has(friend._id) && (
-                              <span className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></span>
+                              <span className="absolute inset-0 w-2 h-2 bg-[#22C55E] rounded-full animate-ping opacity-75"></span>
                             )}
                           </div>
                         </div>
                         <div>
-                          <p className="font-semibold text-black">{friend.username}</p>
-                          <p className="text-xs text-gray-600">{friend.elo} ELO</p>
+                          <p className="font-semibold text-[#F1F5F9]">{friend.username}</p>
+                          <p className="text-xs text-[#CBD5E1]">{friend.elo} ELO</p>
                         </div>
                       </div>
                       <button
                         onClick={() => inviteFriend(friend)}
-                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition text-sm shadow-lg"
+                        className="bg-[#22C55E] text-white px-4 py-2 rounded-lg hover:bg-[#22C55E] transition text-sm shadow-lg"
                       >
                         Invite
                       </button>
@@ -307,7 +376,7 @@ export default function Lobby() {
 
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="w-full mt-4 bg-gray-200 text-black px-4 py-2 rounded-lg hover:bg-gray-300 transition border border-gray-300"
+                className="w-full mt-4 bg-[#334155] text-[#F1F5F9] px-4 py-2 rounded-lg hover:bg-[#475569] transition border border-[#475569]"
               >
                 Close
               </button>

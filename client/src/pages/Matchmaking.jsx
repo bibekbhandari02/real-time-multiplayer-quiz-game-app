@@ -29,19 +29,26 @@ export default function Matchmaking() {
   }, [searching]);
 
   useEffect(() => {
-    socket.on('match_found', ({ roomCode, autoStart }) => {
+    if (!socket) return;
+
+    const handleMatchFound = ({ roomCode, autoStart }) => {
+      console.log('🎮 Match found!', { roomCode, autoStart });
+      setSearching(false);
+      
       if (autoStart) {
-        // For ranked matches, go directly to game
-        setSearching(false);
-        navigate(`/game/${roomCode}`);
+        // For ranked matches, show countdown then go to game
+        // First navigate to a waiting screen, then to game when it starts
+        navigate(`/lobby/${roomCode}`);
       } else {
         // For regular matches, go to lobby
         navigate(`/lobby/${roomCode}`);
       }
-    });
+    };
+
+    socket.on('match_found', handleMatchFound);
 
     return () => {
-      socket.off('match_found');
+      socket.off('match_found', handleMatchFound);
     };
   }, [socket, navigate]);
 
@@ -96,26 +103,26 @@ export default function Matchmaking() {
   };
 
   return (
-    <div className="min-h-screen p-3 md:p-4 flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen p-3 md:p-4 flex items-center justify-center bg-[#0F172A]">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-xl md:rounded-2xl p-6 md:p-8 shadow-2xl max-w-md w-full border border-gray-200"
+        className="bg-[#1E293B] rounded-xl md:rounded-2xl p-6 md:p-8 shadow-2xl max-w-md w-full border border-[#334155]"
       >
         <div className="text-center mb-4 md:mb-6">
           <div className="text-5xl mb-3">⚔️</div>
-          <h1 className="text-2xl md:text-3xl font-bold text-black">Ranked Matchmaking</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#F1F5F9]">Ranked Matchmaking</h1>
         </div>
 
         {queueStatus && (
-          <div className="bg-gray-50 rounded-lg p-3 md:p-4 mb-4 md:mb-6 border border-gray-200">
+          <div className="bg-[#334155] rounded-lg p-3 md:p-4 mb-4 md:mb-6 border border-[#334155]">
             <div className="flex justify-between mb-2 text-sm md:text-base">
-              <span className="text-gray-600">Players in Queue:</span>
-              <span className="font-bold text-black">{queueStatus.playersInQueue}</span>
+              <span className="text-[#CBD5E1]">Players in Queue:</span>
+              <span className="font-bold text-[#F1F5F9]">{queueStatus.playersInQueue}</span>
             </div>
             <div className="flex justify-between text-sm md:text-base">
-              <span className="text-gray-600">Avg Wait Time:</span>
-              <span className="font-bold text-black">{queueStatus.averageWaitTime}s</span>
+              <span className="text-[#CBD5E1]">Avg Wait Time:</span>
+              <span className="font-bold text-[#F1F5F9]">{queueStatus.averageWaitTime}s</span>
             </div>
           </div>
         )}
@@ -125,7 +132,7 @@ export default function Matchmaking() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={startMatchmaking}
-            className="w-full bg-black text-white py-4 rounded-lg font-bold text-lg shadow-lg hover:bg-gray-800 transition"
+            className="w-full bg-gradient-to-r from-[#FACC15] to-[#F97316] text-black py-4 rounded-lg font-bold text-lg shadow-lg shadow-[#FACC15]/30 hover:from-[#EAB308] hover:to-[#EA580C] transition"
           >
             🎮 Find Match
           </motion.button>
@@ -134,13 +141,13 @@ export default function Matchmaking() {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              className="w-16 h-16 border-4 border-black border-t-transparent rounded-full mx-auto mb-4"
+              className="w-16 h-16 border-4 border-[#3B82F6] border-t-transparent rounded-full mx-auto mb-4"
             />
-            <p className="text-xl font-semibold mb-2 text-black">Searching for opponents...</p>
-            <p className="text-gray-600 mb-6">Wait time: <span className="text-black font-bold">{waitTime}s</span></p>
+            <p className="text-xl font-semibold mb-2 text-[#F1F5F9]">Searching for opponents...</p>
+            <p className="text-[#CBD5E1] mb-6">Wait time: <span className="text-[#F1F5F9] font-bold">{waitTime}s</span></p>
             <button
               onClick={cancelMatchmaking}
-              className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition"
+              className="bg-[#EF4444] text-white px-6 py-2 rounded-lg hover:bg-[#DC2626] transition"
             >
               Cancel
             </button>
@@ -149,7 +156,7 @@ export default function Matchmaking() {
 
         <button
           onClick={() => navigate('/')}
-          className="w-full mt-4 text-black hover:text-gray-700 transition font-semibold"
+          className="w-full mt-4 text-[#F1F5F9] hover:text-[#3B82F6] transition font-semibold"
         >
           ← Back to Home
         </button>

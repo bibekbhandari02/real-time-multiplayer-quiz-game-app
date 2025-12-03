@@ -15,15 +15,23 @@ export const setupSpectatorHandlers = (io, socket) => {
       // Check if user is already a player
       const isPlayer = room.players.some(p => p.userId.toString() === userId);
       if (isPlayer) {
-        socket.emit('spectator_error', { message: 'You are already a player in this game' });
-        return;
+        console.log(`⚠️ User ${userId} is still a player, removing from players first...`);
+        
+        // Remove from players if they're trying to switch to spectator
+        room.players = room.players.filter(p => p.userId.toString() !== userId);
+        
+        // Notify other players that this player left
+        io.to(roomCode).emit('player_left', {
+          players: room.players
+        });
       }
 
       // Add to spectators if not already there
       if (!room.spectators.includes(userId)) {
         room.spectators.push(userId);
-        await room.save();
       }
+      
+      await room.save();
 
       // Join socket room
       socket.join(roomCode);

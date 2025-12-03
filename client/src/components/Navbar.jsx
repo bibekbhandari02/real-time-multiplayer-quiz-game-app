@@ -11,37 +11,37 @@ export default function Navbar() {
   if (!user) return null;
 
   return (
-    <nav className="bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
+    <nav className="bg-[#1E293B] border-b border-[#334155] shadow-lg sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-14 sm:h-16">
           
           {/* LEFT: Logo */}
           <button
             onClick={() => navigate('/')}
-            className="text-black text-2xl font-bold hover:opacity-70 transition-opacity"
+            className="text-xl sm:text-2xl font-bold text-[#F1F5F9] hover:text-[#3B82F6] transition-colors"
           >
             TriviaNova
           </button>
 
           {/* RIGHT: Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
             <button
               onClick={() => navigate('/leaderboard')}
-              className="text-gray-600 hover:text-black transition-colors text-sm font-medium"
+              className="text-[#CBD5E1] hover:text-[#3B82F6] transition-colors text-sm font-medium"
             >
               Leaderboard
             </button>
             
             <button
               onClick={() => navigate('/achievements')}
-              className="text-gray-600 hover:text-black transition-colors text-sm font-medium"
+              className="text-[#CBD5E1] hover:text-[#3B82F6] transition-colors text-sm font-medium"
             >
               Achievements
             </button>
             
             <button
               onClick={() => navigate('/friends')}
-              className="text-gray-600 hover:text-black transition-colors text-sm font-medium"
+              className="text-[#CBD5E1] hover:text-[#3B82F6] transition-colors text-sm font-medium"
             >
               Friends
             </button>
@@ -50,14 +50,14 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg border border-gray-200 hover:border-gray-300 transition-all"
+                className="flex items-center gap-2 bg-[#334155] hover:bg-[#475569] px-3 py-2 rounded-lg border border-[#475569] hover:border-[#3B82F6] transition-all"
               >
-                <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-8 h-8 bg-[#3B82F6] rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
                   {user.username?.[0]?.toUpperCase() || 'U'}
                 </div>
-                <span className="text-black text-sm font-semibold">{user.username || 'User'}</span>
+                <span className="text-[#F1F5F9] text-sm font-semibold hidden lg:inline">{user.username || 'User'}</span>
                 <svg 
-                  className={`w-4 h-4 text-gray-600 transition-transform ${profileDropdownOpen ? 'rotate-180' : ''}`} 
+                  className={`w-4 h-4 text-gray-600 transition-transform hidden lg:inline ${profileDropdownOpen ? 'rotate-180' : ''}`} 
                   fill="none" 
                   stroke="currentColor" 
                   viewBox="0 0 24 24"
@@ -73,13 +73,11 @@ export default function Navbar() {
                     className="fixed inset-0 z-10" 
                     onClick={() => setProfileDropdownOpen(false)}
                   />
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-2xl border border-gray-200 z-20">
+                  <div className="absolute right-0 mt-2 w-56 bg-[#1E293B] rounded-xl shadow-2xl border border-[#334155] z-20">
                     {/* Stats */}
-                    <div className="p-4 border-b border-gray-200">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 text-xs">ELO Rating</span>
-                        <span className="text-black font-bold">{user.elo || 1000}</span>
-                      </div>
+                    <div className="p-4 border-b border-[#334155]">
+                      <p className="text-xs text-[#CBD5E1] mb-1 uppercase tracking-wide">ELO Rating</p>
+                      <p className="text-2xl font-bold text-[#FACC15]">{user.elo || 1000}</p>
                     </div>
 
                     {/* Menu Items */}
@@ -88,9 +86,9 @@ export default function Navbar() {
                         navigate('/profile');
                         setProfileDropdownOpen(false);
                       }}
-                      className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-100 transition text-sm"
+                      className="w-full px-4 py-3 text-left text-[#F1F5F9] hover:bg-[#334155] transition text-sm font-medium"
                     >
-                      Profile
+                      👤 Profile
                     </button>
                     
                     <button
@@ -98,9 +96,9 @@ export default function Navbar() {
                         logout();
                         setProfileDropdownOpen(false);
                       }}
-                      className="w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 transition border-t border-gray-200 text-sm"
+                      className="w-full px-4 py-3 text-left text-[#EF4444] hover:bg-[#991B1B] hover:text-white transition border-t border-[#334155] text-sm font-medium"
                     >
-                      Logout
+                      🚪 Logout
                     </button>
                   </div>
                 </>
@@ -112,7 +110,7 @@ export default function Navbar() {
           <div className="md:hidden flex items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-black p-2 hover:bg-gray-100 rounded-lg transition border border-gray-300"
+              className="text-[#F1F5F9] p-2 hover:bg-[#334155] rounded-lg transition border border-[#475569]"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {mobileMenuOpen ? (
@@ -128,14 +126,27 @@ export default function Navbar() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden pb-4 space-y-2">
+            {/* User Info */}
+            <div className="bg-[#0F172A] p-4 rounded-lg border border-[#334155] mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#3B82F6] to-[#FACC15] rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                  {user.username?.[0]?.toUpperCase() || 'U'}
+                </div>
+                <div>
+                  <p className="text-[#F1F5F9] font-bold">{user.username || 'User'}</p>
+                  <p className="text-[#FACC15] text-sm font-semibold">{user.elo || 1000} ELO</p>
+                </div>
+              </div>
+            </div>
+
             <button
               onClick={() => {
                 navigate('/leaderboard');
                 setMobileMenuOpen(false);
               }}
-              className="w-full text-left px-4 py-3 bg-gray-100 text-black rounded-lg hover:bg-gray-200 transition text-sm"
+              className="w-full text-left px-4 py-3 bg-[#334155] text-[#F1F5F9] rounded-lg hover:bg-[#475569] transition text-sm font-medium"
             >
-              Leaderboard
+              🏆 Leaderboard
             </button>
             
             <button
@@ -143,9 +154,9 @@ export default function Navbar() {
                 navigate('/achievements');
                 setMobileMenuOpen(false);
               }}
-              className="w-full text-left px-4 py-3 bg-gray-100 text-black rounded-lg hover:bg-gray-200 transition text-sm"
+              className="w-full text-left px-4 py-3 bg-[#334155] text-[#F1F5F9] rounded-lg hover:bg-[#475569] transition text-sm font-medium"
             >
-              Achievements
+              🎖️ Achievements
             </button>
             
             <button
@@ -153,9 +164,9 @@ export default function Navbar() {
                 navigate('/friends');
                 setMobileMenuOpen(false);
               }}
-              className="w-full text-left px-4 py-3 bg-gray-100 text-black rounded-lg hover:bg-gray-200 transition text-sm"
+              className="w-full text-left px-4 py-3 bg-[#334155] text-[#F1F5F9] rounded-lg hover:bg-[#475569] transition text-sm font-medium"
             >
-              Friends
+              👥 Friends
             </button>
             
             <button
@@ -163,9 +174,9 @@ export default function Navbar() {
                 navigate('/profile');
                 setMobileMenuOpen(false);
               }}
-              className="w-full text-left px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm"
+              className="w-full text-left px-4 py-3 bg-[#334155] text-[#F1F5F9] rounded-lg hover:bg-[#475569] transition text-sm font-medium"
             >
-              Profile
+              👤 Profile
             </button>
             
             <button
@@ -173,9 +184,9 @@ export default function Navbar() {
                 logout();
                 setMobileMenuOpen(false);
               }}
-              className="w-full text-left px-4 py-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition text-sm"
+              className="w-full text-left px-4 py-3 bg-[#991B1B] text-white rounded-lg hover:bg-[#EF4444] transition text-sm font-medium border border-[#DC2626]"
             >
-              Logout
+              🚪 Logout
             </button>
           </div>
         )}

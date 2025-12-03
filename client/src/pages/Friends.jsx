@@ -36,71 +36,93 @@ export default function Friends() {
 
   useEffect(() => {
     // Listen for chat messages and online status
-    if (socket && user) {
-      // Announce that this user is online
-      socket.emit('user_connected', { userId: user.id });
+    if (!socket || !user) return;
 
-      socket.on('friend_message', (data) => {
-        setChatMessages(prev => ({
-          ...prev,
-          [data.from]: [...(prev[data.from] || []), { from: data.from, message: data.message, timestamp: Date.now() }]
-        }));
-      });
+    // Announce that this user is online
+    socket.emit('user_connected', { userId: user.id });
 
-      socket.on('room_invite', (data) => {
-        if (confirm(`${data.fromUsername} invited you to room ${data.roomCode}. Join now?`)) {
-          navigate(`/lobby/${data.roomCode}`);
-        }
-      });
+    const handleFriendMessage = (data) => {
+      setChatMessages(prev => ({
+        ...prev,
+        [data.from]: [...(prev[data.from] || []), { from: data.from, message: data.message, timestamp: Date.now() }]
+      }));
+    };
 
-      socket.on('friend_request_received', () => {
-        fetchFriendRequests();
-      });
-
-      // Listen for online status updates
-      socket.on('user_online', (data) => {
-        console.log('User came online:', data.userId);
-        setOnlineUsers(prev => new Set([...prev, data.userId]));
-      });
-
-      socket.on('user_offline', (data) => {
-        console.log('User went offline:', data.userId);
-        setOnlineUsers(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(data.userId);
-          return newSet;
-        });
-      });
-      
-      socket.on('online_friends_list', (data) => {
-        console.log('Online friends:', data.onlineUserIds);
-        setOnlineUsers(new Set(data.onlineUserIds || []));
-      });
-
-      // Periodically refresh online status every 10 seconds
-      const refreshInterval = setInterval(() => {
-        if (friends.length > 0 && socket.connected) {
-          const friendIds = friends.map(f => f._id);
-          socket.emit('get_online_friends', { friendIds });
-        }
-      }, 10000);
-
-      return () => {
-        clearInterval(refreshInterval);
-      };
-    }
-
-    return () => {
-      if (socket) {
-        socket.off('friend_message');
-        socket.off('room_invite');
-        socket.off('friend_request_received');
-        socket.off('user_online');
-        socket.off('user_offline');
-        socket.off('online_friends_list');
+    const handleRoomInvite = (data) => {
+      if (confirm(`${data.fromUsername} invited you to room ${data.roomCode}. Join now?`)) {
+        navigate(`/lobby/${data.roomCode}`);
       }
     };
-  }, [socket, navigate, user, friends]);
+
+    const handleFriendRequestReceived = () => {
+      fetchFriendRequests();
+    };
+
+    const handleUserOnline = (data) => {
+      console.log('User came online:', data.userId);
+      setOnlineUsers(prev => new Set([...prev, data.userId]));
+    };
+
+    const handleUserOffline = (data) => {
+      console.log('User went offline:', data.userId);
+      setOnlineUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(data.userId);
+        return newSet;
+      });
+    };
+
+    const handleOnlineFriendsList = (data) => {
+      console.log('Online friends:', data.onlineUserIds);
+      setOnlineUsers(new Set(data.onlineUserIds || []));
+    };
+
+    // Remove any existing listeners first to prevent duplicates
+    socket.off('friend_message', handleFriendMessage);
+    socket.off('room_invite', handleRoomInvite);
+    socket.off('friend_request_received', handleFriendRequestReceived);
+    socket.off('user_online', handleUserOnline);
+    socket.off('user_offline', handleUserOffline);
+    socket.off('online_friends_list', handleOnlineFriendsList);
+
+    // Add listeners
+    socket.on('friend_message', handleFriendMessage);
+    socket.on('room_invite', handleRoomInvite);
+    socket.on('friend_request_received', handleFriendRequestReceived);
+    socket.on('user_online', handleUserOnline);
+    socket.on('user_offline', handleUserOffline);
+    socket.on('online_friends_list', handleOnlineFriendsList);
+
+    return () => {
+      socket.off('friend_message', handleFriendMessage);
+      socket.off('room_invite', handleRoomInvite);
+      socket.off('friend_request_received', handleFriendRequestReceived);
+      socket.off('user_online', handleUserOnline);
+      socket.off('user_offline', handleUserOffline);
+      socket.off('online_friends_list', handleOnlineFriendsList);
+    };
+  }, [socket, navigate, user]);
+
+  // Separate effect for periodic online status refresh
+  useEffect(() => {
+    if (!socket || friends.length === 0) return;
+
+    // Initial request
+    const friendIds = friends.map(f => f._id);
+    socket.emit('get_online_friends', { friendIds });
+
+    // Periodically refresh online status every 10 seconds
+    const refreshInterval = setInterval(() => {
+      if (socket.connected) {
+        const friendIds = friends.map(f => f._id);
+        socket.emit('get_online_friends', { friendIds });
+      }
+    }, 10000);
+
+    return () => {
+      clearInterval(refreshInterval);
+    };
+  }, [socket, friends]);
 
   const fetchFriends = async () => {
     try {
@@ -287,10 +309,11 @@ export default function Friends() {
     // Clear input immediately for better UX
     setMessageInput('');
     
-    // Add to local chat immediately
+    // Add to local chat immediately (optimistic update)
+    const tempMessage = { from: user.id, message, timestamp: Date.now() };
     setChatMessages(prev => ({
       ...prev,
-      [friendId]: [...(prev[friendId] || []), { from: user.id, message, timestamp: Date.now() }]
+      [friendId]: [...(prev[friendId] || []), tempMessage]
     }));
     
     // Send via socket if available
@@ -299,6 +322,8 @@ export default function Friends() {
         to: friendId,
         message
       });
+      // Note: Don't add message again when receiving echo from server
+      // The server should only send to the recipient, not back to sender
     } else {
       console.log('Socket not connected, using API fallback');
       // Fallback to API if socket not connected
@@ -312,6 +337,11 @@ export default function Friends() {
       } catch (error) {
         console.error('Failed to send message:', error);
         alert('Failed to send message. Please try again.');
+        // Remove the optimistic message on error
+        setChatMessages(prev => ({
+          ...prev,
+          [friendId]: (prev[friendId] || []).filter(m => m !== tempMessage)
+        }));
       }
     }
   };
@@ -362,11 +392,11 @@ export default function Friends() {
 
 
   return (
-    <div className="min-h-screen p-3 md:p-4 pb-20 md:pb-4 bg-gray-100">
+    <div className="min-h-screen p-3 md:p-4 pb-20 md:pb-4 bg-[#0F172A]">
       <div className="max-w-7xl mx-auto">
         <button
           onClick={() => navigate('/')}
-          className="text-black mb-4 md:mb-6 hover:text-gray-700 text-sm md:text-base"
+          className="text-[#F1F5F9] mb-4 md:mb-6 hover:text-[#3B82F6] text-sm md:text-base"
         >
           ← Back to Home
         </button>
@@ -376,9 +406,9 @@ export default function Friends() {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="md:col-span-1 bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-2xl"
+            className="md:col-span-1 bg-[#1E293B] rounded-xl md:rounded-2xl p-4 md:p-6 shadow-2xl"
           >
-            <h1 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 text-black">👥 Friends</h1>
+            <h1 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 text-[#F1F5F9]">👥 Friends</h1>
 
             {/* Search */}
             <div className="mb-4">
@@ -387,7 +417,7 @@ export default function Friends() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="🔍 Search users..."
-                className="w-full px-3 md:px-4 py-2 bg-gray-50 border border-gray-200 text-black rounded-lg focus:ring-2 focus:ring-green-500 focus:border-gray-400 placeholder-gray-600 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 bg-[#334155] border border-[#334155] text-[#F1F5F9] rounded-lg focus:ring-2 focus:ring-green-500 focus:border-gray-400 placeholder-[#94A3B8] text-sm md:text-base"
               />
 
               <AnimatePresence>
@@ -399,14 +429,14 @@ export default function Friends() {
                     className="mt-2 space-y-2 max-h-60 overflow-y-auto"
                   >
                     {searchResults.map((user) => (
-                      <div key={user._id} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg border border-gray-200">
+                      <div key={user._id} className="flex justify-between items-center p-2 bg-[#334155] rounded-lg border border-[#334155]">
                         <div>
-                          <p className="font-semibold text-sm text-black">{user.username}</p>
-                          <p className="text-xs text-gray-600">{user.elo} ELO</p>
+                          <p className="font-semibold text-sm text-[#F1F5F9]">{user.username}</p>
+                          <p className="text-xs text-[#CBD5E1]">{user.elo} ELO</p>
                         </div>
                         <button
                           onClick={() => sendFriendRequest(user._id)}
-                          className="bg-black text-white px-3 py-1 rounded text-xs hover:bg-gray-800 transition"
+                          className="bg-[#3B82F6] text-white px-3 py-1 rounded text-xs hover:bg-[#2563EB] transition"
                         >
                           Add
                         </button>
@@ -419,24 +449,24 @@ export default function Friends() {
 
             {/* Friend Requests */}
             {friendRequests.length > 0 && (
-              <div className="mb-4 p-3 bg-gray-100 rounded-lg border border-gray-300">
-                <h3 className="text-sm font-semibold text-black mb-2">
+              <div className="mb-4 p-3 bg-[#0F172A] rounded-lg border border-[#475569]">
+                <h3 className="text-sm font-semibold text-[#F1F5F9] mb-2">
                   Friend Requests ({friendRequests.length})
                 </h3>
                 <div className="space-y-2">
                   {friendRequests.map((request) => (
                     <div key={request.from} className="flex justify-between items-center text-sm">
-                      <span className="font-semibold text-black">{request.username}</span>
+                      <span className="font-semibold text-[#F1F5F9]">{request.username}</span>
                       <div className="flex gap-1">
                         <button
                           onClick={() => acceptFriendRequest(request.from)}
-                          className="bg-black text-white px-2 py-1 rounded text-xs hover:bg-gray-800"
+                          className="bg-[#3B82F6] text-white px-2 py-1 rounded text-xs hover:bg-[#2563EB]"
                         >
                           ✓
                         </button>
                         <button
                           onClick={() => declineFriendRequest(request.from)}
-                          className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
+                          className="bg-[#EF4444] text-white px-2 py-1 rounded text-xs hover:bg-[#DC2626]"
                         >
                           ✕
                         </button>
@@ -449,15 +479,15 @@ export default function Friends() {
 
             {/* Friends List */}
             <div className="space-y-2">
-              <h2 className="text-sm font-semibold text-gray-600 mb-2">Your Friends ({friends.length})</h2>
+              <h2 className="text-sm font-semibold text-[#CBD5E1] mb-2">Your Friends ({friends.length})</h2>
               {loading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 </div>
               ) : friends.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 text-sm mb-2">👥 No friends yet</p>
-                  <p className="text-xs text-gray-600">Friends you add will appear here</p>
+                  <p className="text-[#94A3B8] text-sm mb-2">👥 No friends yet</p>
+                  <p className="text-xs text-[#CBD5E1]">Friends you add will appear here</p>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-96 overflow-y-auto overflow-x-hidden scrollbar-thin">
@@ -468,8 +498,8 @@ export default function Friends() {
                       onClick={() => setSelectedFriend(friend)}
                       className={`p-3 rounded-lg cursor-pointer transition ${
                         selectedFriend?._id === friend._id
-                          ? 'bg-black text-white shadow-lg'
-                          : 'bg-gray-50 hover:bg-gray-100 text-black border border-gray-200'
+                          ? 'bg-[#3B82F6] text-white shadow-lg'
+                          : 'bg-[#334155] hover:bg-[#0F172A] text-[#F1F5F9] border border-[#334155]'
                       }`}
                     >
                       <div className="flex justify-between items-center">
@@ -478,17 +508,17 @@ export default function Friends() {
                           <div className="relative flex-shrink-0">
                             <div className={`w-2 h-2 rounded-full ${
                               onlineUsers.has(friend._id)
-                                ? 'bg-green-500'
-                                : 'bg-gray-400'
+                                ? 'bg-[#22C55E]'
+                                : 'bg-[#94A3B8]'
                             }`}>
                               {onlineUsers.has(friend._id) && (
-                                <span className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></span>
+                                <span className="absolute inset-0 w-2 h-2 bg-[#22C55E] rounded-full animate-ping opacity-75"></span>
                               )}
                             </div>
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="font-semibold truncate">{friend.username}</p>
-                            <p className={`text-xs ${selectedFriend?._id === friend._id ? 'text-gray-300' : 'text-gray-600'}`}>
+                            <p className={`text-xs ${selectedFriend?._id === friend._id ? 'text-gray-300' : 'text-[#CBD5E1]'}`}>
                               {friend.elo} ELO • {friend.stats?.gamesWon || 0} wins
                             </p>
                           </div>
@@ -498,7 +528,7 @@ export default function Friends() {
                             e.stopPropagation();
                             removeFriend(friend._id);
                           }}
-                          className={`text-xs flex-shrink-0 ml-2 ${selectedFriend?._id === friend._id ? 'text-gray-300 hover:text-white' : 'text-gray-500 hover:text-red-600'}`}
+                          className={`text-xs flex-shrink-0 ml-2 ${selectedFriend?._id === friend._id ? 'text-gray-300 hover:text-white' : 'text-[#94A3B8] hover:text-[#EF4444]'}`}
                         >
                           ✕
                         </button>
@@ -514,18 +544,18 @@ export default function Friends() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="md:col-span-2 bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-2xl border border-gray-200"
+            className="md:col-span-2 bg-[#1E293B] rounded-xl md:rounded-2xl p-4 md:p-6 shadow-2xl border border-[#334155]"
           >
             {selectedFriend ? (
               <>
-                <div className="flex justify-between items-center mb-3 md:mb-4 pb-3 md:pb-4 border-b border-gray-200">
+                <div className="flex justify-between items-center mb-3 md:mb-4 pb-3 md:pb-4 border-b border-[#334155]">
                   <div className="min-w-0 flex-1">
-                    <h2 className="text-xl md:text-2xl font-bold truncate text-black">{selectedFriend.username}</h2>
-                    <p className="text-xs md:text-sm text-gray-600">{selectedFriend.elo} ELO • {selectedFriend.stats?.gamesWon || 0} wins</p>
+                    <h2 className="text-xl md:text-2xl font-bold truncate text-[#F1F5F9]">{selectedFriend.username}</h2>
+                    <p className="text-xs md:text-sm text-[#CBD5E1]">{selectedFriend.elo} ELO • {selectedFriend.stats?.gamesWon || 0} wins</p>
                   </div>
                   <button
                     onClick={() => setSelectedFriend(null)}
-                    className="text-gray-600 hover:text-black text-xl"
+                    className="text-[#CBD5E1] hover:text-[#3B82F6] text-xl"
                   >
                     ✕
                   </button>
@@ -533,10 +563,10 @@ export default function Friends() {
 
                 {/* Chat */}
                 <div className="flex flex-col h-96">
-                  <h3 className="font-semibold mb-2 text-black">💬 Chat</h3>
-                  <div className="flex-1 bg-gray-50 rounded-lg p-4 mb-4 overflow-y-auto border border-gray-200">
+                  <h3 className="font-semibold mb-2 text-[#F1F5F9]">💬 Chat</h3>
+                  <div className="flex-1 bg-[#334155] rounded-lg p-4 mb-4 overflow-y-auto border border-[#334155]">
                     {getCurrentChat().length === 0 ? (
-                      <p className="text-gray-600 text-center text-sm">No messages yet. Start chatting!</p>
+                      <p className="text-[#CBD5E1] text-center text-sm">No messages yet. Start chatting!</p>
                     ) : (
                       <div className="space-y-2">
                         {getCurrentChat().map((msg, idx) => (
@@ -547,8 +577,8 @@ export default function Friends() {
                             <div
                               className={`max-w-xs px-4 py-2 rounded-lg ${
                                 msg.from === user.id
-                                  ? 'bg-black text-white shadow-lg'
-                                  : 'bg-gray-200 border border-gray-300 text-black'
+                                  ? 'bg-[#3B82F6] text-white shadow-lg'
+                                  : 'bg-[#334155] border border-[#475569] text-[#F1F5F9]'
                               }`}
                             >
                               <p className="text-sm">{msg.message}</p>
@@ -571,24 +601,24 @@ export default function Friends() {
                         }
                       }}
                       placeholder="Type a message..."
-                      className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 text-black rounded-lg focus:ring-2 focus:ring-green-500 focus:border-gray-400 placeholder-gray-600"
+                      className="flex-1 px-4 py-2 bg-[#334155] border border-[#334155] text-[#F1F5F9] rounded-lg focus:ring-2 focus:ring-green-500 focus:border-gray-400 placeholder-[#94A3B8]"
                     />
                     <button
                       onClick={sendMessage}
                       disabled={!messageInput.trim()}
-                      className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg"
+                      className="bg-[#3B82F6] text-white px-6 py-2 rounded-lg hover:bg-[#2563EB] transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg"
                       title={!socket?.connected ? 'Socket disconnected - using API fallback' : 'Send message'}
                     >
                       {socket?.connected ? '📤' : '📨'} Send
                     </button>
                   </div>
                   {!socket?.connected && (
-                    <p className="text-xs text-gray-600 mt-1 bg-gray-50 border border-gray-300 rounded p-1">⚠️ Real-time chat unavailable, using fallback mode</p>
+                    <p className="text-xs text-[#CBD5E1] mt-1 bg-[#334155] border border-[#475569] rounded p-1">⚠️ Real-time chat unavailable, using fallback mode</p>
                   )}
                 </div>
               </>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-600">
+              <div className="flex items-center justify-center h-full text-[#CBD5E1]">
                 <div className="text-center">
                   <p className="text-6xl mb-4 filter drop-shadow-lg">👈</p>
                   <p className="text-lg">Select a friend to chat and invite to games</p>

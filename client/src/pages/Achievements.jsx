@@ -36,11 +36,11 @@ export default function Achievements() {
   const progress = achievements.length > 0 ? (unlockedCount / achievements.length * 100).toFixed(0) : 0;
 
   return (
-    <div className="min-h-screen p-4 bg-gray-100">
+    <div className="min-h-screen p-4 bg-[#0F172A]">
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate(-1)}
-          className="text-black mb-6 hover:text-gray-700"
+          className="text-[#F1F5F9] mb-6 hover:text-[#3B82F6]"
         >
           ← Back
         </button>
@@ -48,25 +48,25 @@ export default function Achievements() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-2xl"
+          className="bg-[#1E293B] rounded-xl md:rounded-2xl p-4 md:p-8 shadow-2xl"
         >
-          <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-black">🏆 Achievements</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-[#F1F5F9]">🏆 Achievements</h1>
 
           <div className={`mb-6 md:mb-8 p-4 md:p-6 rounded-xl border-2 ${
             progress === '100' 
-              ? 'bg-gray-100 border-gray-300' 
-              : 'bg-gray-50 border-gray-200'
+              ? 'bg-[#0F172A] border-[#475569]' 
+              : 'bg-[#334155] border-[#334155]'
           }`}>
             <div className="flex justify-between items-center mb-3">
-              <span className="font-semibold text-base md:text-lg text-black">Your Progress</span>
-              <span className="font-bold text-black text-lg md:text-xl">{unlockedCount}/{achievements.length}</span>
+              <span className="font-semibold text-base md:text-lg text-[#F1F5F9]">Your Progress</span>
+              <span className="font-bold text-[#F1F5F9] text-lg md:text-xl">{unlockedCount}/{achievements.length}</span>
             </div>
-            <div className="w-full bg-gray-300 rounded-full h-4">
+            <div className="w-full bg-[#475569] rounded-full h-4">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 1 }}
-                className="h-4 rounded-full bg-black shadow-lg"
+                className="h-4 rounded-full bg-gradient-to-r from-[#3B82F6] to-[#FACC15] shadow-lg"
               />
             </div>
             {progress === '100' ? (
@@ -75,18 +75,18 @@ export default function Achievements() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="mt-3 text-center"
               >
-                <p className="text-lg font-bold text-black">🎉 Perfect! All Achievements Unlocked! 🎉</p>
-                <p className="text-sm text-gray-600 mt-1">You're a true TriviaNova Champion!</p>
+                <p className="text-lg font-bold text-[#F1F5F9]">🎉 Perfect! All Achievements Unlocked! 🎉</p>
+                <p className="text-sm text-[#CBD5E1] mt-1">You're a true TriviaNova Champion!</p>
               </motion.div>
             ) : (
-              <p className="text-sm text-gray-600 mt-2">{progress}% Complete - Keep playing to unlock more!</p>
+              <p className="text-sm text-[#CBD5E1] mt-2">{progress}% Complete - Keep playing to unlock more!</p>
             )}
           </div>
 
           {loading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-300 mx-auto"></div>
-              <p className="text-gray-600 mt-4">Loading achievements...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3B82F6] mx-auto"></div>
+              <p className="text-[#CBD5E1] mt-4">Loading achievements...</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -98,21 +98,21 @@ export default function Achievements() {
                   transition={{ delay: index * 0.05 }}
                   className={`p-6 rounded-xl border-2 transition-all ${
                     achievement.unlocked
-                      ? 'bg-gray-50 border-gray-300 shadow-lg'
-                      : 'bg-gray-100 border-gray-200 opacity-70 hover:opacity-90 hover:border-gray-300'
+                      ? 'bg-[#334155] border-[#475569] shadow-lg'
+                      : 'bg-[#0F172A] border-[#334155] opacity-70 hover:opacity-90 hover:border-[#475569]'
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     <div className={`text-5xl ${achievement.unlocked ? '' : 'grayscale opacity-50'}`}>{achievement.icon}</div>
                     <div className="flex-1">
-                      <h3 className={`font-bold text-lg mb-1 ${achievement.unlocked ? 'text-black' : 'text-gray-500'}`}>{achievement.name}</h3>
-                      <p className={`text-sm mb-2 ${achievement.unlocked ? 'text-gray-700' : 'text-gray-500'}`}>{achievement.description}</p>
+                      <h3 className={`font-bold text-lg mb-1 ${achievement.unlocked ? 'text-[#F1F5F9]' : 'text-[#94A3B8]'}`}>{achievement.name}</h3>
+                      <p className={`text-sm mb-2 ${achievement.unlocked ? 'text-[#CBD5E1]' : 'text-[#94A3B8]'}`}>{achievement.description}</p>
                       {achievement.unlocked ? (
-                        <div className="mt-2 inline-block px-3 py-1 bg-black text-white rounded-full text-xs font-bold">
+                        <div className="mt-2 inline-block px-3 py-1 bg-[#3B82F6] text-white rounded-full text-xs font-bold">
                           ✓ UNLOCKED
                         </div>
                       ) : (
-                        <div className="mt-2 inline-block px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs font-semibold border border-gray-300">
+                        <div className="mt-2 inline-block px-3 py-1 bg-[#334155] text-[#CBD5E1] rounded-full text-xs font-semibold border border-[#475569]">
                           🔒 LOCKED
                         </div>
                       )}

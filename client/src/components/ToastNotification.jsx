@@ -42,11 +42,11 @@ export default function ToastNotification() {
       case 'high':
         return 'border-red-500 bg-red-50';
       case 'medium':
-        return 'border-gray-300 bg-blue-50';
+        return 'border-[#475569] bg-blue-50';
       case 'low':
-        return 'border-gray-500 bg-gray-50';
+        return 'border-gray-500 bg-[#334155]';
       default:
-        return 'border-gray-300 bg-blue-50';
+        return 'border-[#475569] bg-blue-50';
     }
   };
 
@@ -59,7 +59,7 @@ export default function ToastNotification() {
             initial={{ opacity: 0, x: 100, scale: 0.8 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 100, scale: 0.8 }}
-            className={`pointer-events-auto w-80 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-2xl border-l-4 ${getPriorityColor(toast.priority)} p-4 cursor-pointer hover:shadow-xl transition`}
+            className={`pointer-events-auto w-80 max-w-[calc(100vw-2rem)] bg-[#1E293B] rounded-lg shadow-2xl border-l-4 ${getPriorityColor(toast.priority)} p-4 cursor-pointer hover:shadow-xl transition`}
             onClick={() => handleToastClick(toast)}
           >
             <div className="flex gap-3">
@@ -74,14 +74,14 @@ export default function ToastNotification() {
                       e.stopPropagation();
                       removeToast(toast.id);
                     }}
-                    className="text-gray-600 hover:text-gray-600 flex-shrink-0"
+                    className="text-[#CBD5E1] hover:text-[#CBD5E1] flex-shrink-0"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
-                <p className="text-sm text-gray-600 mt-1">{toast.message}</p>
+                <p className="text-sm text-[#CBD5E1] mt-1">{toast.message}</p>
                 {toast.actionLabel && (
                   <div className="mt-2">
                     <span className="text-xs text-primary font-semibold">

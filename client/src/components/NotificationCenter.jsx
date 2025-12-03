@@ -150,13 +150,13 @@ export default function NotificationCenter() {
       {/* Notification Bell */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-700 hover:text-green-400 hover:bg-green-900/20 rounded-lg transition"
+        className="relative p-2 text-[#CBD5E1] hover:text-[#3B82F6] hover:bg-[#334155] rounded-lg transition"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-black text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+          <span className="absolute -top-1 -right-1 bg-[#EF4444] text-[#F1F5F9] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-[0_0_10px_rgba(239,68,68,0.5)]">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -177,15 +177,15 @@ export default function NotificationCenter() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="fixed right-4 top-20 w-96 max-w-[calc(100vw-2rem)] bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-2xl border-2 border-green-500/50 z-50 max-h-[80vh] flex flex-col"
+              className="fixed right-4 top-20 w-96 max-w-[calc(100vw-2rem)] bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-2xl border-2 border-[#3B82F6]/50 z-50 max-h-[80vh] flex flex-col"
             >
               {/* Header */}
-              <div className="p-4 border-b border-green-500/30 flex justify-between items-center">
-                <h3 className="font-bold text-lg text-green-400">Notifications</h3>
+              <div className="p-4 border-b border-[#334155] flex justify-between items-center">
+                <h3 className="font-bold text-lg text-[#3B82F6]">Notifications</h3>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-sm text-green-400 hover:text-green-300 transition"
+                    className="text-sm text-[#3B82F6] hover:text-[#2563EB] transition"
                   >
                     Mark all read
                   </button>
@@ -196,24 +196,24 @@ export default function NotificationCenter() {
               <div className="flex-1 overflow-y-auto scrollbar-thin">
                 {loading ? (
                   <div className="p-8 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3B82F6] mx-auto"></div>
                   </div>
                 ) : notifications.length === 0 ? (
-                  <div className="p-8 text-center text-gray-600">
-                    <svg className="w-12 h-12 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="p-8 text-center text-[#CBD5E1]">
+                    <svg className="w-12 h-12 mx-auto mb-2 text-[#CBD5E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                     <p>No notifications yet</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-green-500/20">
+                  <div className="divide-y divide-[#334155]">
                     {notifications.map((notification) => (
                       <motion.div
                         key={notification._id}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className={`p-4 hover:bg-green-900/20 cursor-pointer transition ${
-                          !notification.isRead ? 'bg-green-900/10 border-l-2 border-green-500' : ''
+                        className={`p-4 hover:bg-[#334155] cursor-pointer transition ${
+                          !notification.isRead ? 'bg-[#3B82F6]/10 border-l-2 border-[#3B82F6]' : ''
                         }`}
                         onClick={() => handleNotificationClick(notification)}
                       >
@@ -223,24 +223,24 @@ export default function NotificationCenter() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-start gap-2">
-                              <p className="font-semibold text-sm text-green-400">{notification.title}</p>
+                              <p className="font-semibold text-sm text-[#3B82F6]">{notification.title}</p>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   deleteNotification(notification._id);
                                 }}
-                                className="text-gray-500 hover:text-red-400 transition"
+                                className="text-[#94A3B8] hover:text-red-400 transition"
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                               </button>
                             </div>
-                            <p className="text-sm text-gray-700 mt-1">{notification.message}</p>
+                            <p className="text-sm text-[#CBD5E1] mt-1">{notification.message}</p>
                             <div className="flex justify-between items-center mt-2">
-                              <p className="text-xs text-gray-500">{formatTime(notification.createdAt)}</p>
+                              <p className="text-xs text-[#94A3B8]">{formatTime(notification.createdAt)}</p>
                               {notification.actionLabel && (
-                                <span className="text-xs text-green-400 font-semibold">
+                                <span className="text-xs text-[#3B82F6] font-semibold">
                                   {notification.actionLabel} →
                                 </span>
                               )}

@@ -30,11 +30,18 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    // If we get 401 or 403, clear auth and redirect to login
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      console.log('Authentication error, clearing session...');
-      localStorage.removeItem('auth-storage');
-      window.location.href = '/login';
+    // Only redirect on 401/403 if user is already logged in and token is invalid
+    // Don't redirect on login/register failures
+    const isAuthEndpoint = error.config?.url?.includes('/auth/login') || 
+                          error.config?.url?.includes('/auth/register');
+    
+    if ((error.response?.status === 401 || error.response?.status === 403) && !isAuthEndpoint) {
+      const authStorage = localStorage.getItem('auth-storage');
+      if (authStorage) {
+        console.log('Authentication error, clearing session...');
+        localStorage.removeItem('auth-storage');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

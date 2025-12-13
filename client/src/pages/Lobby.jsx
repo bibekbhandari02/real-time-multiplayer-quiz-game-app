@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { getSocket, initSocket } from '../socket/socket';
 
@@ -13,6 +13,7 @@ export default function Lobby() {
   const [friends, setFriends] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [rankedCountdown, setRankedCountdown] = useState(null);
+  const [roomResetMessage, setRoomResetMessage] = useState(null);
   const { user, token } = useAuthStore();
   const navigate = useNavigate();
   const hasJoinedRef = useRef(false);
@@ -32,16 +33,50 @@ export default function Lobby() {
     }
 
     socket.on('room_joined', ({ room }) => {
+      console.log('🏠 Joined room:', room);
       setRoom(room);
       setPlayers(room.players);
     });
 
-    socket.on('player_joined', ({ players }) => {
+    socket.on('player_joined', ({ players, room }) => {
       setPlayers(players);
+      // Update room data if provided (for host changes)
+      if (room) {
+        setRoom(room);
+      }
     });
 
-    socket.on('player_left', ({ players }) => {
+    socket.on('player_left', ({ players, newHost, room, reason }) => {
+      console.log('👋 Player left, received players:', players);
       setPlayers(players);
+      
+      // Update room data if provided (for host changes)
+      if (room) {
+        setRoom(room);
+      }
+      
+      // Show host transfer notification
+      if (newHost) {
+        const isCurrentUser = newHost.userId === user.id;
+        let reasonText = '';
+        
+        if (reason === 'disconnected') {
+          reasonText = ' (previous host disconnected)';
+        } else if (reason === 'host_missing') {
+          reasonText = ' (previous host left)';
+        }
+        
+        const message = isCurrentUser 
+          ? `You are now the host!${reasonText}`
+          : `${newHost.username} is now the host!${reasonText}`;
+          
+        setRoomResetMessage(message);
+        
+        // Hide the message after 7 seconds (longer for disconnect messages)
+        setTimeout(() => {
+          setRoomResetMessage(null);
+        }, 7000);
+      }
     });
 
     socket.on('generating_questions', ({ message }) => {
@@ -94,6 +129,50 @@ export default function Lobby() {
       setOnlineUsers(new Set(data.onlineUserIds || []));
     });
 
+    socket.on('room_reset', ({ message, room }) => {
+      console.log('🔄 Room reset:', message);
+      setRoom(room);
+      setPlayers(room.players);
+      setGenerating(false);
+      setRankedCountdown(null);
+      setRoomResetMessage(message);
+      
+      // Hide the reset message after 5 seconds
+      setTimeout(() => {
+        setRoomResetMessage(null);
+      }, 5000);
+    });
+
+    socket.on('player_kicked', ({ kickedPlayer, players, room }) => {
+      console.log('⚠️ Player kicked:', kickedPlayer);
+      setPlayers(players);
+      setRoom(room);
+      
+      setRoomResetMessage(`${kickedPlayer.username} was kicked from the room`);
+      
+      // Hide the message after 5 seconds
+      setTimeout(() => {
+        setRoomResetMessage(null);
+      }, 5000);
+    });
+
+    socket.on('kicked_from_room', ({ message, roomCode }) => {
+      console.log('⚠️ You were kicked:', message);
+      alert(message);
+      navigate('/');
+    });
+
+    socket.on('room_not_found', ({ roomCode }) => {
+      console.log('🏠 Room not found:', roomCode);
+      alert('This room no longer exists. Returning to home.');
+      navigate('/');
+    });
+
+    socket.on('room_status_update', ({ room }) => {
+      setRoom(room);
+      setPlayers(room.players);
+    });
+
     return () => {
       socket.off('room_joined');
       socket.off('player_joined');
@@ -105,6 +184,11 @@ export default function Lobby() {
       socket.off('user_online');
       socket.off('user_offline');
       socket.off('online_friends_list');
+      socket.off('room_reset');
+      socket.off('player_kicked');
+      socket.off('kicked_from_room');
+      socket.off('room_not_found');
+      socket.off('room_status_update');
     };
   }, [roomCode, user.id, user.username, socket, navigate]);
 
@@ -126,6 +210,34 @@ export default function Lobby() {
       navigate(`/spectator/${roomCode}`);
     }, 300);
   };
+
+  const kickPlayer = (targetUserId, targetUsername) => {
+    if (confirm(`Are you sure you want to kick ${targetUsername} from the room?`)) {
+      socket.emit('kick_player', {
+        roomCode,
+        targetUserId,
+        hostUserId: user.id
+      });
+    }
+  };
+
+  // Removed problematic fixHostIssue function
+
+  // Periodic check to ensure room consistency
+  useEffect(() => {
+    if (!room || !socket) return;
+    
+    const checkRoomConsistency = () => {
+      socket.emit('check_room_status', { roomCode, userId: user.id });
+    };
+    
+    // Check room status every 60 seconds (less aggressive)
+    const interval = setInterval(checkRoomConsistency, 60000);
+    
+    return () => clearInterval(interval);
+  }, [room, socket, roomCode, user.id]);
+
+  // Removed problematic cleanup that was causing users to leave rooms incorrectly
 
   const fetchFriends = async () => {
     try {
@@ -209,20 +321,78 @@ export default function Lobby() {
             )}
           </div>
 
+          {/* Room Notifications */}
+          <AnimatePresence>
+            {roomResetMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className={`mb-4 md:mb-6 text-white p-4 rounded-lg shadow-lg ${
+                  roomResetMessage.includes('host') 
+                    ? 'bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] border border-[#7C3AED]'
+                    : roomResetMessage.includes('kicked')
+                    ? 'bg-gradient-to-r from-[#EF4444] to-[#DC2626] border border-[#EF4444]'
+                    : 'bg-gradient-to-r from-[#22C55E] to-[#16A34A] border border-[#22C55E]'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">
+                    {roomResetMessage.includes('host') ? '🎯' : 
+                     roomResetMessage.includes('kicked') ? '⚠️' : '🔄'}
+                  </span>
+                  <p className="font-semibold">{roomResetMessage}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div className="mb-4 md:mb-6">
-            <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-[#F1F5F9]">Players ({players.length}/{room.settings.maxPlayers})</h2>
+            <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-[#F1F5F9]">Players ({players.filter(p => p && p.username).length}/{room?.settings?.maxPlayers || 0})</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-              {players.map((player, index) => (
+              {players
+                .filter(player => player && player.username)
+                .sort((a, b) => {
+                  // Host always comes first
+                  const aIsHost = a.userId && room?.host && a.userId.toString() === room.host.toString();
+                  const bIsHost = b.userId && room?.host && b.userId.toString() === room.host.toString();
+                  
+                  if (aIsHost && !bIsHost) return -1;
+                  if (!aIsHost && bIsHost) return 1;
+                  
+                  // For non-hosts, maintain original order (or sort by username)
+                  return a.username.localeCompare(b.username);
+                })
+                .map((player, index) => (
                 <motion.div
-                  key={`${player.userId}-${index}`}
+                  key={`${player.userId || player.username || index}-${index}`}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-gradient-to-r from-[#3B82F6] to-[#2563EB] text-white p-3 md:p-4 rounded-lg text-center shadow-lg shadow-[#3B82F6]/30"
+                  className={`relative p-3 md:p-4 rounded-lg text-center shadow-lg text-white ${
+                    player.userId && room?.host && player.userId.toString() === room.host.toString()
+                      ? 'bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] shadow-[#8B5CF6]/30 border-2 border-[#7C3AED]'
+                      : 'bg-gradient-to-r from-[#3B82F6] to-[#2563EB] shadow-[#3B82F6]/30'
+                  }`}
                 >
-                  <p className="font-semibold text-sm md:text-base truncate">{player.username}</p>
-                  {player.userId.toString() === room.host.toString() && (
-                    <span className="text-xs bg-[#1E293B] text-[#F1F5F9] px-2 py-1 rounded mt-1 md:mt-2 inline-block font-bold">HOST</span>
+                  {/* Kick button in top right corner */}
+                  {user.id === room?.host?.toString() && 
+                   player.userId && 
+                   player.userId.toString() !== room.host.toString() && (
+                    <button
+                      onClick={() => kickPlayer(player.userId, player.username)}
+                      className="absolute top-1 right-1 w-6 h-6 bg-[#EF4444] hover:bg-[#DC2626] text-white rounded-full text-xs font-bold transition flex items-center justify-center"
+                      title={`Kick ${player.username}`}
+                    >
+                      ×
+                    </button>
+                  )}
+                  
+                  <p className="font-semibold text-sm md:text-base truncate">
+                    {player.username}
+                  </p>
+                  {player.userId && room?.host && player.userId.toString() === room.host.toString() && (
+                    <span className="text-xs bg-white text-[#7C3AED] px-2 py-1 rounded mt-1 md:mt-2 inline-block font-bold">HOST</span>
                   )}
                 </motion.div>
               ))}

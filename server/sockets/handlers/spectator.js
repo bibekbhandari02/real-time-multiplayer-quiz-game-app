@@ -17,12 +17,27 @@ export const setupSpectatorHandlers = (io, socket) => {
       if (isPlayer) {
         console.log(`⚠️ User ${userId} is still a player, removing from players first...`);
         
+        const wasHost = room.host.toString() === userId;
+        
         // Remove from players if they're trying to switch to spectator
         room.players = room.players.filter(p => p.userId.toString() !== userId);
         
+        // If the host switched to spectator and there are still players, transfer host
+        let newHost = null;
+        if (wasHost && room.players.length > 0) {
+          newHost = room.players[0];
+          room.host = newHost.userId;
+          console.log(`👑 Host transferred to ${newHost.username} when switching to spectator in room ${roomCode}`);
+        }
+        
         // Notify other players that this player left
+        // Sort players by score for consistent display, but keep full player objects
+        const sortedPlayers = [...room.players].sort((a, b) => b.score - a.score);
+          
         io.to(roomCode).emit('player_left', {
-          players: room.players
+          players: sortedPlayers,
+          newHost: newHost ? { userId: newHost.userId, username: newHost.username } : null,
+          room: room
         });
       }
 

@@ -9,6 +9,7 @@ export default function Game() {
   const [question, setQuestion] = useState(null);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [timeLeft, setTimeLeft] = useState(15);
+  const [roomSettings, setRoomSettings] = useState({ timePerQuestion: 15 });
   const [score, setScore] = useState(0);
   const [leaderboard, setLeaderboard] = useState([]);
   const [gameOver, setGameOver] = useState(false);
@@ -50,12 +51,26 @@ export default function Game() {
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    socket.on('new_question', ({ question: q, index, timestamp }) => {
+    socket.on('game_started', ({ settings }) => {
+      if (settings) {
+        setRoomSettings(settings);
+      }
+    });
+
+    socket.on('new_question', ({ question: q, index, timestamp, roomSettings: newRoomSettings }) => {
       // Clear any existing timer
       if (timerInterval) {
         clearInterval(timerInterval);
       }
 
+      // Update room settings if provided
+      if (newRoomSettings) {
+        setRoomSettings(newRoomSettings);
+      }
+
+      const questionTime = (newRoomSettings || roomSettings).timePerQuestion || 15;
+      console.log('🕐 Using question time:', questionTime, 'seconds (from settings:', newRoomSettings || roomSettings, ')');
+      
       setQuestion(q);
       setQuestionIndex(index);
       setSelectedAnswer(null);
@@ -64,13 +79,13 @@ export default function Game() {
       setShowResult(false);
       setAllAnswered(false);
       setCountdown(null);
-      setTimeLeft(15);
+      setTimeLeft(questionTime);
       hasSubmittedRef.current = false;
       
       const startTime = Date.now();
       timerInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        const newTimeLeft = Math.max(0, 15 - elapsed);
+        const newTimeLeft = Math.max(0, questionTime - elapsed);
         setTimeLeft(newTimeLeft);
         
         // Auto-submit when time runs out if not answered
@@ -82,7 +97,7 @@ export default function Game() {
             roomCode,
             questionIndex: index,
             answer: -1, // -1 means no answer
-            timeSpent: 15
+            timeSpent: questionTime
           });
         }
       }, 100);
@@ -95,7 +110,9 @@ export default function Game() {
     });
 
     socket.on('leaderboard_update', ({ players }) => {
-      setLeaderboard(players);
+      // Sort players by score in descending order (highest first)
+      const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+      setLeaderboard(sortedPlayers);
     });
 
     socket.on('all_answered', ({ nextIn }) => {
@@ -124,20 +141,49 @@ export default function Game() {
         clearInterval(timerInterval);
       }
       setGameOver(true);
-      setLeaderboard(finalBoard);
+      // Sort final leaderboard by score
+      const sortedFinalBoard = [...finalBoard].sort((a, b) => b.score - a.score);
+      setLeaderboard(sortedFinalBoard);
     });
 
-    socket.on('player_left', ({ username, players }) => {
+    socket.on('player_left', ({ username, players, newHost }) => {
       // Show notification
       setPlayerLeftNotification(username);
       
-      // Update leaderboard
-      setLeaderboard(players.map(p => ({ username: p.username, score: p.score })));
+      console.log('👋 Player left in game, received players:', players);
       
-      // Hide notification after 5 seconds
-      setTimeout(() => {
-        setPlayerLeftNotification(null);
-      }, 5000);
+      // Show host transfer notification if applicable
+      if (newHost) {
+        console.log(`👑 ${newHost.username} is now the host!`);
+      }
+      
+      // Update leaderboard with sorted players (convert to simple format)
+      const sortedPlayers = players
+        .map(p => ({ 
+          username: p.username || p.username, 
+          score: p.score || 0 
+        }))
+        .sort((a, b) => b.score - a.score);
+      setLeaderboard(sortedPlayers);
+    });
+
+    socket.on('player_kicked', ({ kickedPlayer, players }) => {
+      setPlayerLeftNotification(`${kickedPlayer.username} (kicked)`);
+      console.log('⚠️ Player kicked in game:', kickedPlayer);
+      
+      const sortedPlayers = players
+        .map(p => ({ 
+          username: p.username || p.username, 
+          score: p.score || 0 
+        }))
+        .sort((a, b) => b.score - a.score);
+      setLeaderboard(sortedPlayers);
+    });
+
+    socket.on('kicked_from_room', ({ message }) => {
+      console.log('⚠️ You were kicked from game:', message);
+      alert(message);
+      navigate('/');
     });
 
     return () => {
@@ -145,15 +191,20 @@ export default function Game() {
         clearInterval(timerInterval);
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      socket.off('game_started');
       socket.off('new_question');
       socket.off('answer_result');
       socket.off('leaderboard_update');
       socket.off('all_answered');
       socket.off('game_over');
       socket.off('player_left');
+      socket.off('player_kicked');
+      socket.off('kicked_from_room');
       socket.off('ranked_starting');
     };
-  }, [socket, roomCode]);
+  }, [socket, roomCode]); // useEffect cleanup
+
+  // Removed problematic cleanup that was causing users to leave rooms incorrectly
 
   const submitAnswer = (answerIndex) => {
     if (hasSubmittedRef.current) return;
@@ -161,7 +212,7 @@ export default function Game() {
     hasSubmittedRef.current = true;
     setAnswered(true);
     setSelectedAnswer(answerIndex);
-    const timeSpent = 15 - timeLeft;
+    const timeSpent = (roomSettings.timePerQuestion || 15) - timeLeft;
     
     socket.emit('submit_answer', {
       roomCode,
@@ -205,12 +256,23 @@ export default function Game() {
               </div>
             ))}
           </div>
-          <button
-            onClick={() => navigate('/')}
-            className="w-full bg-[#3B82F6] text-white py-3 rounded-lg font-semibold hover:bg-[#2563EB] transition"
-          >
-            Back to Home
-          </button>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => navigate(`/lobby/${roomCode}`)}
+              className="w-full bg-gradient-to-r from-[#FACC15] to-[#F97316] text-black py-4 rounded-lg font-bold text-lg hover:from-[#EAB308] hover:to-[#EA580C] transition shadow-lg shadow-[#FACC15]/30"
+            >
+              🏠 Return to Lobby
+            </button>
+            <button
+              onClick={() => {
+                socket.emit('leave_room', { roomCode, userId: user.id });
+                navigate('/');
+              }}
+              className="w-full bg-[#3B82F6] text-white py-3 rounded-lg font-semibold hover:bg-[#2563EB] transition"
+            >
+              🏡 Back to Home
+            </button>
+          </div>
         </motion.div>
       </div>
     );
@@ -378,19 +440,39 @@ export default function Game() {
           <div className="space-y-2">
             {leaderboard.map((player, index) => (
               <motion.div
-                key={index}
+                key={player.username}
+                layout
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ 
+                  layout: { duration: 0.3, ease: "easeInOut" },
+                  default: { delay: index * 0.05 }
+                }}
                 className={`flex justify-between items-center p-3 rounded-lg ${
                   index === 0 ? 'bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-white' : 'bg-[#334155] text-[#F1F5F9]'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className={`font-bold ${index === 0 ? 'text-white' : 'text-[#94A3B8]'}`}>#{index + 1}</span>
+                  <motion.span 
+                    key={`${player.username}-position-${index}`}
+                    initial={{ scale: 1.2 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className={`font-bold ${index === 0 ? 'text-white' : 'text-[#94A3B8]'}`}
+                  >
+                    #{index + 1}
+                  </motion.span>
                   <span className="font-semibold">{player.username}</span>
                 </div>
-                <span className="font-bold">{player.score}</span>
+                <motion.span 
+                  key={player.score}
+                  initial={{ scale: 1.5 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                  className="font-bold"
+                >
+                  {player.score}
+                </motion.span>
               </motion.div>
             ))}
           </div>

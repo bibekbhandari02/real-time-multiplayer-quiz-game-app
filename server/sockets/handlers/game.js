@@ -83,12 +83,13 @@ export const handleGameEvents = (socket, io) => {
 
       io.to(data.roomCode).emit('game_started', { 
         timestamp: Date.now(),
-        totalQuestions: populatedRoom.questions.length
+        totalQuestions: populatedRoom.questions.length,
+        settings: populatedRoom.settings
       });
 
       // Send first question
       setTimeout(() => {
-        sendQuestion(io, data.roomCode, populatedRoom.questions[0], 0);
+        sendQuestion(io, data.roomCode, populatedRoom.questions[0], 0, populatedRoom.settings);
       }, 3000);
     } catch (error) {
       console.error('Start game error:', error);
@@ -131,6 +132,8 @@ export const handleGameEvents = (socket, io) => {
         currentStreak, 
         isCorrect
       );
+      
+      console.log(`💯 Score calculation - User: ${socket.userId}, Correct: ${isCorrect}, Score: ${score}`);
       
       // Debug logging
       console.log(`🔍 Answer check - Question: "${question.question.substring(0, 50)}..."`);
@@ -179,8 +182,14 @@ export const handleGameEvents = (socket, io) => {
       const player = updatedRoom.players.find(p => p.userId.toString() === socket.userId);
 
       socket.emit('answer_result', { correct: isCorrect, score, totalScore: player.score });
+      
+      // Sort players by score in descending order for leaderboard
+      const sortedPlayers = updatedRoom.players
+        .map(p => ({ username: p.username, score: p.score }))
+        .sort((a, b) => b.score - a.score);
+      
       io.to(roomCode).emit('leaderboard_update', { 
-        players: updatedRoom.players.map(p => ({ username: p.username, score: p.score }))
+        players: sortedPlayers
       });
 
       // Get fresh room data to ensure we have latest answers
@@ -245,7 +254,7 @@ export const handleGameEvents = (socket, io) => {
             } else {
               await roomToAdvance.save();
               console.log(`➡️ Moving to question ${roomToAdvance.currentQuestion} in room ${roomCode}`);
-              sendQuestion(io, roomCode, roomToAdvance.questions[roomToAdvance.currentQuestion], roomToAdvance.currentQuestion);
+              sendQuestion(io, roomCode, roomToAdvance.questions[roomToAdvance.currentQuestion], roomToAdvance.currentQuestion, roomToAdvance.settings);
             }
             
             global.advancingQuestions.delete(advanceKey);
@@ -272,7 +281,7 @@ export const handleGameEvents = (socket, io) => {
         await endGame(io, room);
       } else {
         await room.save();
-        sendQuestion(io, data.roomCode, room.questions[room.currentQuestion], room.currentQuestion);
+        sendQuestion(io, data.roomCode, room.questions[room.currentQuestion], room.currentQuestion, room.settings);
       }
     } catch (error) {
       console.error('Next question error:', error);
@@ -280,7 +289,8 @@ export const handleGameEvents = (socket, io) => {
   });
 };
 
-const sendQuestion = (io, roomCode, question, index) => {
+const sendQuestion = (io, roomCode, question, index, roomSettings = {}) => {
+  console.log(`📤 Sending question ${index} to room ${roomCode} with settings:`, roomSettings);
   io.to(roomCode).emit('new_question', {
     index,
     question: {
@@ -291,6 +301,7 @@ const sendQuestion = (io, roomCode, question, index) => {
       category: question.category,
       correctAnswer: question.correctAnswer
     },
+    roomSettings,
     timestamp: Date.now()
   });
 };

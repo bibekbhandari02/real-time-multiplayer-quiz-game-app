@@ -8,9 +8,9 @@
  * @returns {number} - Calculated score
  */
 export const calculateScore = (timeSpent, maxTime, difficulty = 'medium', streak = 0, isCorrect = true) => {
-  // Wrong answer penalty
+  // Wrong answer - no points awarded (no negative scoring)
   if (!isCorrect) {
-    return -25; // Small penalty to discourage random guessing
+    return 0; // No penalty, just no points for wrong answers
   }
 
   // Base score by difficulty
@@ -45,12 +45,12 @@ export const calculateScore = (timeSpent, maxTime, difficulty = 'medium', streak
 export const getScoreBreakdown = (timeSpent, maxTime, difficulty = 'medium', streak = 0, isCorrect = true) => {
   if (!isCorrect) {
     return {
-      total: -25,
+      total: 0,
       base: 0,
       speed: 0,
       streak: 0,
       perfect: 0,
-      penalty: -25
+      penalty: 0
     };
   }
 

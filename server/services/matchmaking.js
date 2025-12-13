@@ -185,7 +185,8 @@ const findMatch = async (userId, io = null) => {
                 // Notify players game is starting
                 io.to(roomCode).emit('game_started', { 
                   timestamp: Date.now(),
-                  totalQuestions: populatedRoom.questions.length
+                  totalQuestions: populatedRoom.questions.length,
+                  settings: populatedRoom.settings
                 });
 
                 // Send first question immediately (players already waited during countdown)
@@ -201,6 +202,7 @@ const findMatch = async (userId, io = null) => {
                       category: populatedRoom.questions[0].category,
                       correctAnswer: populatedRoom.questions[0].correctAnswer
                     },
+                    roomSettings: populatedRoom.settings,
                     timestamp: Date.now()
                   });
                 }, 1000);

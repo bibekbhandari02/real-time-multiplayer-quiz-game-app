@@ -18,6 +18,7 @@ export default function Spectator() {
   const [loading, setLoading] = useState(true);
   const [playersAnswered, setPlayersAnswered] = useState(new Set());
   const [timeLeft, setTimeLeft] = useState(15);
+  const [roomSettings, setRoomSettings] = useState({ timePerQuestion: 15 });
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
 
   useEffect(() => {
@@ -32,7 +33,9 @@ export default function Spectator() {
     socket.on('spectator_joined_success', (data) => {
       console.log('✅ Spectator joined successfully:', data);
       setGameState(data.room);
-      setPlayers(data.room.players);
+      // Sort initial players by score
+      const sortedPlayers = [...data.room.players].sort((a, b) => b.score - a.score);
+      setPlayers(sortedPlayers);
       setSpectatorCount(data.room.spectatorCount);
       
       // If there's a current question, set it
@@ -66,11 +69,20 @@ export default function Spectator() {
     // Game events
     socket.on('game_started', (data) => {
       console.log('🎮 Game started:', data);
+      if (data.settings) {
+        setRoomSettings(data.settings);
+      }
       setGameState(prev => ({ ...prev, status: 'playing' }));
     });
 
     socket.on('new_question', (data) => {
       console.log('❓ New question received:', data);
+      
+      // Update room settings if provided
+      if (data.roomSettings) {
+        setRoomSettings(data.roomSettings);
+      }
+      
       setCurrentQuestion({
         questionNumber: data.index + 1,
         question: data.question.question,
@@ -80,20 +92,23 @@ export default function Spectator() {
         category: data.question.category
       });
       setPlayersAnswered(new Set());
-      setTimeLeft(15);
+      const questionTime = (data.roomSettings || roomSettings).timePerQuestion || 15;
+      console.log('🕐 Spectator using question time:', questionTime, 'seconds (from settings:', data.roomSettings || roomSettings, ')');
+      setTimeLeft(questionTime);
       setShowCorrectAnswer(false);
     });
 
     socket.on('answer_result', (data) => {
       console.log('📊 Answer result:', data);
-      // Update player scores
-      setPlayers(prev => 
-        prev.map(p => 
+      // Update player scores and maintain sorting
+      setPlayers(prev => {
+        const updated = prev.map(p => 
           p.username === data.username 
             ? { ...p, score: data.newScore }
             : p
-        )
-      );
+        );
+        return updated.sort((a, b) => b.score - a.score);
+      });
     });
 
     socket.on('player_answered', (data) => {
@@ -101,14 +116,15 @@ export default function Spectator() {
       // Track who has answered
       setPlayersAnswered(prev => new Set([...prev, data.username]));
       
-      // Update player scores in real-time
-      setPlayers(prev => 
-        prev.map(p => 
+      // Update player scores in real-time and maintain sorting
+      setPlayers(prev => {
+        const updated = prev.map(p => 
           p.username === data.username 
             ? { ...p, score: data.score }
             : p
-        )
-      );
+        );
+        return updated.sort((a, b) => b.score - a.score);
+      });
     });
 
     socket.on('all_answered', () => {
@@ -118,8 +134,9 @@ export default function Spectator() {
 
     socket.on('leaderboard_update', (data) => {
       console.log('📊 Leaderboard update:', data);
-      // Update all player scores
-      setPlayers(data.players);
+      // Update all player scores and sort by score
+      const sortedPlayers = [...data.players].sort((a, b) => b.score - a.score);
+      setPlayers(sortedPlayers);
     });
 
     socket.on('game_over', (data) => {

@@ -99,7 +99,9 @@ export const generateQuestions = async (category, difficultyMode = 'mixed', coun
     const avoidanceNote = recentTopics.length > 0 ? 
       `\nAVOID these recently used topics: ${recentTopics.join(', ')}` : '';
 
-    const prompt = `Generate ${count} trivia questions about ${category}.
+    const prompt = `STRICT REQUIREMENTS: Generate ${count} trivia questions ONLY about ${category}. DO NOT generate questions about other topics.
+
+CATEGORY REQUIREMENT: ALL questions MUST be about ${category} ONLY. No general knowledge, history, geography, or other topics unless they are specifically related to ${category}.
 
 QUESTION LENGTH STANDARDS:
 - Easy: 5-10 words maximum (e.g., "What is the capital of France?")
@@ -118,7 +120,7 @@ ANSWER OPTIONS:
 
 ${getDifficultyInstructions(difficultyMode, count)}
 
-VARIETY: Cover different subtopics: ${varietyTopics.slice(0, 5).join(', ')}${avoidanceNote}
+CATEGORY FOCUS: Cover different ${category} subtopics: ${varietyTopics.slice(0, 5).join(', ')}${avoidanceNote}
 
 Return ONLY a valid JSON array:
 [
@@ -154,24 +156,61 @@ Rules:
     
     const questions = JSON.parse(cleaned);
     
-    const validQuestions = questions.filter(q => 
-      q.question && 
-      Array.isArray(q.options) && 
-      q.options.length === 4 &&
-      typeof q.correctAnswer === 'number' &&
-      q.correctAnswer >= 0 &&
-      q.correctAnswer <= 3 &&
-      q.explanation
-    );
+    const validQuestions = questions.filter(q => {
+      // Basic validation
+      const basicValid = q.question && 
+        Array.isArray(q.options) && 
+        q.options.length === 4 &&
+        typeof q.correctAnswer === 'number' &&
+        q.correctAnswer >= 0 &&
+        q.correctAnswer <= 3 &&
+        q.explanation;
+      
+      if (!basicValid) return false;
+      
+      // Category validation - ensure question is about the requested category
+      if (q.category && q.category.toLowerCase() !== category.toLowerCase()) {
+        console.warn(`⚠️ Question category mismatch: expected ${category}, got ${q.category}`);
+        return false;
+      }
+      
+      // Difficulty validation for single difficulty modes
+      if (difficultyMode === 'easy' && q.difficulty !== 'easy') {
+        console.warn(`⚠️ Question difficulty mismatch: expected easy, got ${q.difficulty}`);
+        return false;
+      }
+      if (difficultyMode === 'medium' && q.difficulty !== 'medium') {
+        console.warn(`⚠️ Question difficulty mismatch: expected medium, got ${q.difficulty}`);
+        return false;
+      }
+      if (difficultyMode === 'hard' && q.difficulty !== 'hard') {
+        console.warn(`⚠️ Question difficulty mismatch: expected hard, got ${q.difficulty}`);
+        return false;
+      }
+      
+      return true;
+    });
     
     console.log(`✅ Generated ${validQuestions.length}/${questions.length} valid questions`);
     
+    // Ensure all questions have correct category and difficulty
+    const finalQuestions = validQuestions.map(q => ({
+      ...q,
+      category: category, // Force correct category
+      difficulty: difficultyMode === 'mixed' || difficultyMode === 'progressive' ? q.difficulty : difficultyMode // Force correct difficulty for single modes
+    }));
+    
     // Track generated questions to avoid repetition
-    if (validQuestions.length > 0) {
-      trackGeneratedQuestions(category, validQuestions);
+    if (finalQuestions.length > 0) {
+      trackGeneratedQuestions(category, finalQuestions);
     }
     
-    return validQuestions;
+    console.log(`📊 Final questions - Category: ${category}, Difficulty mode: ${difficultyMode}`);
+    finalQuestions.forEach((q, i) => {
+      console.log(`  Q${i+1}: ${q.difficulty} - ${q.question.substring(0, 50)}...`);
+    });
+    
+    return finalQuestions;
   } catch (error) {
     console.error('❌ AI generation error:', error.message);
     return [];
@@ -205,12 +244,12 @@ export const generateQuestionsWithFallback = async (category, difficultyMode = '
     }
     
     console.log(`⚠️ Using fallback questions for ${category} (got ${uniqueQuestions.length}/${count})`);
-    const fallbackQuestions = getFallbackQuestions(category, count - uniqueQuestions.length);
+    const fallbackQuestions = getFallbackQuestions(category, count - uniqueQuestions.length, difficultyMode);
     
     return [...uniqueQuestions, ...fallbackQuestions].slice(0, count);
   } catch (error) {
     console.error('❌ AI generation failed, using fallback:', error.message);
-    return getFallbackQuestions(category, count);
+    return getFallbackQuestions(category, count, difficultyMode);
   }
 };
 
@@ -348,7 +387,11 @@ const getVarietyTopics = (category) => {
     'Geography': ['countries', 'capitals', 'rivers', 'mountains', 'deserts', 'oceans', 'climate', 'natural disasters', 'landmarks', 'cultures'],
     'Sports': ['football', 'basketball', 'tennis', 'olympics', 'records', 'athletes', 'teams', 'championships', 'rules', 'equipment'],
     'Entertainment': ['movies', 'music', 'television', 'celebrities', 'awards', 'genres', 'directors', 'actors', 'bands', 'games'],
-    'Literature': ['novels', 'poetry', 'authors', 'genres', 'classics', 'modern works', 'literary movements', 'characters', 'themes', 'awards']
+    'Literature': ['novels', 'poetry', 'authors', 'genres', 'classics', 'modern works', 'literary movements', 'characters', 'themes', 'awards'],
+    'Anime': ['popular series', 'characters', 'studios', 'directors', 'voice actors', 'manga adaptations', 'genres', 'release years', 'awards', 'cultural impact'],
+    'Movies': ['directors', 'actors', 'genres', 'awards', 'box office', 'cinematography', 'franchises', 'studios', 'release years', 'cultural impact'],
+    'Music': ['artists', 'genres', 'albums', 'instruments', 'composers', 'bands', 'awards', 'music theory', 'history', 'cultural movements'],
+    'Technology': ['programming', 'hardware', 'software', 'internet', 'AI', 'mobile devices', 'gaming', 'cybersecurity', 'innovations', 'companies']
   };
   
   return topicMap[category] || topicMap['General Knowledge'];
@@ -357,18 +400,18 @@ const getVarietyTopics = (category) => {
 // Helper function to create difficulty distribution instructions
 const getDifficultyInstructions = (difficultyMode, count) => {
   if (difficultyMode === 'easy') {
-    return 'DIFFICULTY: All questions should be EASY - basic facts everyone knows';
+    return 'DIFFICULTY REQUIREMENT: ALL questions MUST be "easy" difficulty - basic facts everyone knows. Set "difficulty": "easy" for ALL questions.';
   } else if (difficultyMode === 'medium') {
-    return 'DIFFICULTY: All questions should be MEDIUM - some thinking required';
+    return 'DIFFICULTY REQUIREMENT: ALL questions MUST be "medium" difficulty - some thinking required. Set "difficulty": "medium" for ALL questions.';
   } else if (difficultyMode === 'hard') {
-    return 'DIFFICULTY: All questions should be HARD - specialized knowledge needed';
+    return 'DIFFICULTY REQUIREMENT: ALL questions MUST be "hard" difficulty - specialized knowledge needed. Set "difficulty": "hard" for ALL questions.';
   } else if (difficultyMode === 'progressive') {
-    return `DIFFICULTY: Start easy, get harder - Questions 1-${Math.ceil(count/3)}: easy, ${Math.ceil(count/3)+1}-${Math.ceil(2*count/3)}: medium, ${Math.ceil(2*count/3)+1}-${count}: hard`;
+    return `DIFFICULTY REQUIREMENT: Start easy, get harder - Questions 1-${Math.ceil(count/3)}: set "difficulty": "easy", ${Math.ceil(count/3)+1}-${Math.ceil(2*count/3)}: set "difficulty": "medium", ${Math.ceil(2*count/3)+1}-${count}: set "difficulty": "hard"`;
   } else { // mixed
     const easy = Math.ceil(count * 0.4);
     const medium = Math.ceil(count * 0.4);
     const hard = count - easy - medium;
-    return `DIFFICULTY: Mix of ${easy} easy, ${medium} medium, ${hard} hard questions`;
+    return `DIFFICULTY REQUIREMENT: Mix of ${easy} questions with "difficulty": "easy", ${medium} questions with "difficulty": "medium", ${hard} questions with "difficulty": "hard"`;
   }
 };
 

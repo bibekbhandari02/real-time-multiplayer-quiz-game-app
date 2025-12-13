@@ -330,7 +330,7 @@ export default function Lobby() {
                 exit={{ opacity: 0, y: -20 }}
                 className={`mb-4 md:mb-6 text-white p-4 rounded-lg shadow-lg ${
                   roomResetMessage.includes('host') 
-                    ? 'bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] border border-[#7C3AED]'
+                    ? 'bg-gradient-to-r from-[#FACC15] to-[#F59E0B] border border-[#F59E0B]'
                     : roomResetMessage.includes('kicked')
                     ? 'bg-gradient-to-r from-[#EF4444] to-[#DC2626] border border-[#EF4444]'
                     : 'bg-gradient-to-r from-[#22C55E] to-[#16A34A] border border-[#22C55E]'
@@ -369,11 +369,7 @@ export default function Lobby() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
-                  className={`relative p-3 md:p-4 rounded-lg text-center shadow-lg text-white ${
-                    player.userId && room?.host && player.userId.toString() === room.host.toString()
-                      ? 'bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] shadow-[#8B5CF6]/30 border-2 border-[#7C3AED]'
-                      : 'bg-gradient-to-r from-[#3B82F6] to-[#2563EB] shadow-[#3B82F6]/30'
-                  }`}
+                  className={`relative p-3 md:p-4 rounded-lg text-center shadow-lg text-white bg-gradient-to-r from-[#3B82F6] to-[#2563EB] shadow-[#3B82F6]/30`}
                 >
                   {/* Kick button in top right corner */}
                   {user.id === room?.host?.toString() && 
@@ -392,7 +388,7 @@ export default function Lobby() {
                     {player.username}
                   </p>
                   {player.userId && room?.host && player.userId.toString() === room.host.toString() && (
-                    <span className="text-xs bg-white text-[#7C3AED] px-2 py-1 rounded mt-1 md:mt-2 inline-block font-bold">HOST</span>
+                    <span className="text-xs bg-[#FACC15] text-black px-2 py-1 rounded mt-1 md:mt-2 inline-block font-bold">HOST</span>
                   )}
                 </motion.div>
               ))}

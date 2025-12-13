@@ -327,14 +327,197 @@ export const fallbackQuestions = {
       difficulty: "easy",
       category: "Technology"
     }
+  ],
+  'Anime': [
+    {
+      question: "Which anime features a ninja named Naruto?",
+      options: ["One Piece", "Naruto", "Bleach", "Dragon Ball"],
+      correctAnswer: 1,
+      explanation: "Naruto is the main character of the anime series 'Naruto', created by Masashi Kishimoto.",
+      difficulty: "easy",
+      category: "Anime"
+    },
+    {
+      question: "What is the name of the Death Note owner?",
+      options: ["Light Yagami", "L Lawliet", "Misa Amane", "Ryuk"],
+      correctAnswer: 0,
+      explanation: "Light Yagami is the main protagonist who finds and uses the Death Note in the series.",
+      difficulty: "easy",
+      category: "Anime"
+    },
+    {
+      question: "Which anime features pirates searching for One Piece?",
+      options: ["Naruto", "Bleach", "One Piece", "Fairy Tail"],
+      correctAnswer: 2,
+      explanation: "One Piece follows Monkey D. Luffy and his crew as they search for the legendary treasure 'One Piece'.",
+      difficulty: "easy",
+      category: "Anime"
+    },
+    {
+      question: "Who is the main character in Attack on Titan?",
+      options: ["Mikasa Ackerman", "Armin Arlert", "Eren Yeager", "Levi Ackerman"],
+      correctAnswer: 2,
+      explanation: "Eren Yeager is the main protagonist of Attack on Titan (Shingeki no Kyojin).",
+      difficulty: "easy",
+      category: "Anime"
+    },
+    {
+      question: "What is the name of Goku's signature attack?",
+      options: ["Kamehameha", "Rasengan", "Chidori", "Spirit Bomb"],
+      correctAnswer: 0,
+      explanation: "The Kamehameha is Goku's signature energy attack in the Dragon Ball series.",
+      difficulty: "easy",
+      category: "Anime"
+    },
+    {
+      question: "Which studio created Spirited Away?",
+      options: ["Toei Animation", "Studio Ghibli", "Madhouse", "Bones"],
+      correctAnswer: 1,
+      explanation: "Studio Ghibli, founded by Hayao Miyazaki, created the acclaimed film Spirited Away.",
+      difficulty: "medium",
+      category: "Anime"
+    },
+    {
+      question: "What is the name of the school in My Hero Academia?",
+      options: ["U.A. High School", "Shiketsu High", "Ketsubutsu Academy", "Seiai Academy"],
+      correctAnswer: 0,
+      explanation: "U.A. High School is the prestigious hero academy where Izuku Midoriya studies.",
+      difficulty: "medium",
+      category: "Anime"
+    },
+    {
+      question: "Who is known as the Copy Ninja?",
+      options: ["Sasuke Uchiha", "Kakashi Hatake", "Itachi Uchiha", "Jiraiya"],
+      correctAnswer: 1,
+      explanation: "Kakashi Hatake is known as the Copy Ninja due to his ability to copy other ninja techniques.",
+      difficulty: "medium",
+      category: "Anime"
+    },
+    {
+      question: "What is the name of Edward Elric's brother?",
+      options: ["Roy Mustang", "Winry Rockbell", "Alphonse Elric", "Maes Hughes"],
+      correctAnswer: 2,
+      explanation: "Alphonse Elric is Edward's younger brother in Fullmetal Alchemist.",
+      difficulty: "hard",
+      category: "Anime"
+    },
+    {
+      question: "Which anime features the Philosopher's Stone?",
+      options: ["Naruto", "Fullmetal Alchemist", "Bleach", "Soul Eater"],
+      correctAnswer: 1,
+      explanation: "The Philosopher's Stone is a central element in Fullmetal Alchemist, sought by the Elric brothers.",
+      difficulty: "hard",
+      category: "Anime"
+    }
+  ],
+  'Movies': [
+    {
+      question: "Who directed the movie Titanic?",
+      options: ["Steven Spielberg", "James Cameron", "Christopher Nolan", "Martin Scorsese"],
+      correctAnswer: 1,
+      explanation: "James Cameron directed Titanic (1997), which became one of the highest-grossing films of all time.",
+      difficulty: "easy",
+      category: "Movies"
+    },
+    {
+      question: "Which movie features the quote 'May the Force be with you'?",
+      options: ["Star Trek", "Star Wars", "Guardians of the Galaxy", "Interstellar"],
+      correctAnswer: 1,
+      explanation: "This iconic quote is from the Star Wars franchise, first appearing in the original 1977 film.",
+      difficulty: "easy",
+      category: "Movies"
+    },
+    {
+      question: "Who played Jack in Titanic?",
+      options: ["Brad Pitt", "Leonardo DiCaprio", "Tom Cruise", "Johnny Depp"],
+      correctAnswer: 1,
+      explanation: "Leonardo DiCaprio played Jack Dawson in James Cameron's Titanic (1997).",
+      difficulty: "easy",
+      category: "Movies"
+    },
+    {
+      question: "Which movie won the Academy Award for Best Picture in 2020?",
+      options: ["1917", "Joker", "Parasite", "Once Upon a Time in Hollywood"],
+      correctAnswer: 2,
+      explanation: "Parasite, directed by Bong Joon-ho, won Best Picture at the 2020 Academy Awards.",
+      difficulty: "hard",
+      category: "Movies"
+    },
+    {
+      question: "Who directed The Dark Knight?",
+      options: ["Zack Snyder", "Christopher Nolan", "Tim Burton", "Sam Raimi"],
+      correctAnswer: 1,
+      explanation: "Christopher Nolan directed The Dark Knight (2008), the second film in his Batman trilogy.",
+      difficulty: "medium",
+      category: "Movies"
+    }
+  ],
+  'Music': [
+    {
+      question: "Which band released the album 'Abbey Road'?",
+      options: ["The Rolling Stones", "The Beatles", "Led Zeppelin", "Pink Floyd"],
+      correctAnswer: 1,
+      explanation: "The Beatles released Abbey Road in 1969, their eleventh studio album.",
+      difficulty: "easy",
+      category: "Music"
+    },
+    {
+      question: "Who composed 'The Four Seasons'?",
+      options: ["Mozart", "Beethoven", "Vivaldi", "Bach"],
+      correctAnswer: 2,
+      explanation: "Antonio Vivaldi composed 'The Four Seasons', a set of four violin concertos.",
+      difficulty: "medium",
+      category: "Music"
+    },
+    {
+      question: "Which instrument has 88 keys?",
+      options: ["Organ", "Piano", "Harpsichord", "Accordion"],
+      correctAnswer: 1,
+      explanation: "A standard piano has 88 keys: 52 white keys and 36 black keys.",
+      difficulty: "easy",
+      category: "Music"
+    },
+    {
+      question: "Who is known as the 'King of Pop'?",
+      options: ["Elvis Presley", "Michael Jackson", "Prince", "David Bowie"],
+      correctAnswer: 1,
+      explanation: "Michael Jackson earned the title 'King of Pop' for his contributions to music and dance.",
+      difficulty: "easy",
+      category: "Music"
+    },
+    {
+      question: "Which genre originated in New Orleans?",
+      options: ["Blues", "Jazz", "Rock", "Country"],
+      correctAnswer: 1,
+      explanation: "Jazz music originated in New Orleans in the early 20th century.",
+      difficulty: "medium",
+      category: "Music"
+    }
   ]
 };
 
 // Get random questions from fallback bank
-export const getFallbackQuestions = (category, count = 10) => {
+export const getFallbackQuestions = (category, count = 10, difficultyMode = 'mixed') => {
   const categoryQuestions = fallbackQuestions[category] || fallbackQuestions['General Knowledge'];
   
+  let filteredQuestions = [...categoryQuestions];
+  
+  // Filter by difficulty if specific mode is requested
+  if (difficultyMode === 'easy') {
+    filteredQuestions = categoryQuestions.filter(q => q.difficulty === 'easy');
+  } else if (difficultyMode === 'medium') {
+    filteredQuestions = categoryQuestions.filter(q => q.difficulty === 'medium');
+  } else if (difficultyMode === 'hard') {
+    filteredQuestions = categoryQuestions.filter(q => q.difficulty === 'hard');
+  }
+  
+  // If not enough questions of specific difficulty, fall back to all questions
+  if (filteredQuestions.length < count && difficultyMode !== 'mixed' && difficultyMode !== 'progressive') {
+    console.warn(`⚠️ Not enough ${difficultyMode} questions for ${category}, using mixed difficulty`);
+    filteredQuestions = [...categoryQuestions];
+  }
+  
   // Shuffle and return requested number of questions
-  const shuffled = [...categoryQuestions].sort(() => Math.random() - 0.5);
+  const shuffled = filteredQuestions.sort(() => Math.random() - 0.5);
   return shuffled.slice(0, Math.min(count, shuffled.length));
 };

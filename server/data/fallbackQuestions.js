@@ -3,56 +3,56 @@ export const fallbackQuestions = {
   'General Knowledge': [
     {
       question: "What is the capital of France?",
-      options: ["London", "Berlin", "Paris", "Madrid"],
-      correctAnswer: 2,
+      options: ["Paris", "London", "Berlin", "Madrid"],
+      correctAnswer: 0,
       explanation: "Paris is the capital and largest city of France, known for the Eiffel Tower and rich cultural heritage.",
       difficulty: "easy",
       category: "General Knowledge"
     },
     {
       question: "Which planet is known as the Red Planet?",
-      options: ["Venus", "Mars", "Jupiter", "Saturn"],
-      correctAnswer: 1,
+      options: ["Venus", "Jupiter", "Saturn", "Mars"],
+      correctAnswer: 3,
       explanation: "Mars is called the Red Planet due to iron oxide (rust) on its surface, giving it a reddish appearance.",
       difficulty: "easy",
       category: "General Knowledge"
     },
     {
       question: "Who painted the Mona Lisa?",
-      options: ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Michelangelo"],
-      correctAnswer: 2,
+      options: ["Vincent van Gogh", "Leonardo da Vinci", "Pablo Picasso", "Michelangelo"],
+      correctAnswer: 1,
       explanation: "Leonardo da Vinci painted the Mona Lisa in the early 16th century. It's one of the most famous paintings in the world.",
       difficulty: "easy",
       category: "General Knowledge"
     },
     {
       question: "What is the largest ocean on Earth?",
-      options: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
-      correctAnswer: 3,
+      options: ["Atlantic Ocean", "Indian Ocean", "Pacific Ocean", "Arctic Ocean"],
+      correctAnswer: 2,
       explanation: "The Pacific Ocean is the largest and deepest ocean, covering more than 30% of Earth's surface.",
       difficulty: "easy",
       category: "General Knowledge"
     },
     {
       question: "How many continents are there?",
-      options: ["5", "6", "7", "8"],
-      correctAnswer: 2,
+      options: ["5", "6", "8", "7"],
+      correctAnswer: 3,
       explanation: "There are 7 continents: Africa, Antarctica, Asia, Europe, North America, Australia/Oceania, and South America.",
       difficulty: "easy",
       category: "General Knowledge"
     },
     {
       question: "What is the smallest country in the world?",
-      options: ["Monaco", "Vatican City", "San Marino", "Liechtenstein"],
-      correctAnswer: 1,
+      options: ["Vatican City", "Monaco", "San Marino", "Liechtenstein"],
+      correctAnswer: 0,
       explanation: "Vatican City is the smallest country, covering only 0.44 square kilometers within Rome, Italy.",
       difficulty: "medium",
       category: "General Knowledge"
     },
     {
       question: "In what year did World War II end?",
-      options: ["1943", "1944", "1945", "1946"],
-      correctAnswer: 2,
+      options: ["1943", "1945", "1944", "1946"],
+      correctAnswer: 1,
       explanation: "World War II ended in 1945 with Germany's surrender in May and Japan's surrender in September.",
       difficulty: "medium",
       category: "General Knowledge"
@@ -67,8 +67,8 @@ export const fallbackQuestions = {
     },
     {
       question: "Who wrote 'Romeo and Juliet'?",
-      options: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"],
-      correctAnswer: 1,
+      options: ["Charles Dickens", "Jane Austen", "Mark Twain", "William Shakespeare"],
+      correctAnswer: 3,
       explanation: "William Shakespeare wrote Romeo and Juliet around 1594-1596, one of his most famous tragic plays.",
       difficulty: "easy",
       category: "General Knowledge"
@@ -93,8 +93,8 @@ export const fallbackQuestions = {
     },
     {
       question: "What is the powerhouse of the cell?",
-      options: ["Nucleus", "Ribosome", "Mitochondria", "Chloroplast"],
-      correctAnswer: 2,
+      options: ["Nucleus", "Mitochondria", "Ribosome", "Chloroplast"],
+      correctAnswer: 1,
       explanation: "Mitochondria are known as the powerhouse of the cell because they generate most of the cell's ATP energy.",
       difficulty: "easy",
       category: "Science"
@@ -109,32 +109,32 @@ export const fallbackQuestions = {
     },
     {
       question: "How many bones are in the adult human body?",
-      options: ["186", "206", "226", "246"],
-      correctAnswer: 1,
+      options: ["186", "226", "246", "206"],
+      correctAnswer: 3,
       explanation: "An adult human body has 206 bones. Babies are born with about 270 bones that fuse together as they grow.",
       difficulty: "medium",
       category: "Science"
     },
     {
       question: "What gas do plants absorb from the atmosphere?",
-      options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"],
-      correctAnswer: 2,
+      options: ["Carbon Dioxide", "Oxygen", "Nitrogen", "Hydrogen"],
+      correctAnswer: 0,
       explanation: "Plants absorb carbon dioxide (CO2) during photosynthesis and release oxygen as a byproduct.",
       difficulty: "easy",
       category: "Science"
     },
     {
       question: "What is the most abundant gas in Earth's atmosphere?",
-      options: ["Oxygen", "Carbon Dioxide", "Nitrogen", "Hydrogen"],
-      correctAnswer: 2,
+      options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"],
+      correctAnswer: 1,
       explanation: "Nitrogen makes up about 78% of Earth's atmosphere, while oxygen is about 21%.",
       difficulty: "medium",
       category: "Science"
     },
     {
       question: "At what temperature does water boil at sea level?",
-      options: ["90°C", "100°C", "110°C", "120°C"],
-      correctAnswer: 1,
+      options: ["90°C", "110°C", "100°C", "120°C"],
+      correctAnswer: 2,
       explanation: "Water boils at 100°C (212°F) at sea level under standard atmospheric pressure.",
       difficulty: "easy",
       category: "Science"
@@ -149,16 +149,16 @@ export const fallbackQuestions = {
     },
     {
       question: "What is the study of earthquakes called?",
-      options: ["Meteorology", "Seismology", "Geology", "Volcanology"],
-      correctAnswer: 1,
+      options: ["Seismology", "Meteorology", "Geology", "Volcanology"],
+      correctAnswer: 0,
       explanation: "Seismology is the scientific study of earthquakes and the propagation of elastic waves through the Earth.",
       difficulty: "medium",
       category: "Science"
     },
     {
       question: "What particle in an atom has a negative charge?",
-      options: ["Proton", "Neutron", "Electron", "Photon"],
-      correctAnswer: 2,
+      options: ["Proton", "Electron", "Neutron", "Photon"],
+      correctAnswer: 1,
       explanation: "Electrons carry a negative charge, while protons are positive and neutrons are neutral.",
       difficulty: "easy",
       category: "Science"
@@ -331,16 +331,16 @@ export const fallbackQuestions = {
   'Anime': [
     {
       question: "Which anime features a ninja named Naruto?",
-      options: ["One Piece", "Naruto", "Bleach", "Dragon Ball"],
-      correctAnswer: 1,
+      options: ["Naruto", "One Piece", "Bleach", "Dragon Ball"],
+      correctAnswer: 0,
       explanation: "Naruto is the main character of the anime series 'Naruto', created by Masashi Kishimoto.",
       difficulty: "easy",
       category: "Anime"
     },
     {
       question: "What is the name of the Death Note owner?",
-      options: ["Light Yagami", "L Lawliet", "Misa Amane", "Ryuk"],
-      correctAnswer: 0,
+      options: ["L Lawliet", "Light Yagami", "Misa Amane", "Ryuk"],
+      correctAnswer: 1,
       explanation: "Light Yagami is the main protagonist who finds and uses the Death Note in the series.",
       difficulty: "easy",
       category: "Anime"
@@ -355,8 +355,8 @@ export const fallbackQuestions = {
     },
     {
       question: "Who is the main character in Attack on Titan?",
-      options: ["Mikasa Ackerman", "Armin Arlert", "Eren Yeager", "Levi Ackerman"],
-      correctAnswer: 2,
+      options: ["Mikasa Ackerman", "Armin Arlert", "Levi Ackerman", "Eren Yeager"],
+      correctAnswer: 3,
       explanation: "Eren Yeager is the main protagonist of Attack on Titan (Shingeki no Kyojin).",
       difficulty: "easy",
       category: "Anime"
@@ -379,24 +379,24 @@ export const fallbackQuestions = {
     },
     {
       question: "What is the name of the school in My Hero Academia?",
-      options: ["U.A. High School", "Shiketsu High", "Ketsubutsu Academy", "Seiai Academy"],
-      correctAnswer: 0,
+      options: ["Shiketsu High", "Ketsubutsu Academy", "U.A. High School", "Seiai Academy"],
+      correctAnswer: 2,
       explanation: "U.A. High School is the prestigious hero academy where Izuku Midoriya studies.",
       difficulty: "medium",
       category: "Anime"
     },
     {
       question: "Who is known as the Copy Ninja?",
-      options: ["Sasuke Uchiha", "Kakashi Hatake", "Itachi Uchiha", "Jiraiya"],
-      correctAnswer: 1,
+      options: ["Sasuke Uchiha", "Itachi Uchiha", "Jiraiya", "Kakashi Hatake"],
+      correctAnswer: 3,
       explanation: "Kakashi Hatake is known as the Copy Ninja due to his ability to copy other ninja techniques.",
       difficulty: "medium",
       category: "Anime"
     },
     {
       question: "What is the name of Edward Elric's brother?",
-      options: ["Roy Mustang", "Winry Rockbell", "Alphonse Elric", "Maes Hughes"],
-      correctAnswer: 2,
+      options: ["Alphonse Elric", "Roy Mustang", "Winry Rockbell", "Maes Hughes"],
+      correctAnswer: 0,
       explanation: "Alphonse Elric is Edward's younger brother in Fullmetal Alchemist.",
       difficulty: "hard",
       category: "Anime"

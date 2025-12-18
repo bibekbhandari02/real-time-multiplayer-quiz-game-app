@@ -1,4 +1,5 @@
 import { getFallbackQuestions } from '../data/fallbackQuestions.js';
+import { applyStandardAnswerDistribution, validateQuizStandards } from '../utils/quizStandards.js';
 
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
@@ -117,10 +118,20 @@ ANSWER OPTIONS:
 - Keep all options short and concise (1-4 words each)
 - Make wrong answers plausible but clearly incorrect
 - Avoid obviously wrong or silly options
+- CRITICAL: Randomize correct answer position - use ALL positions (0, 1, 2, 3) equally
+- Do NOT always put correct answer in position 1 or 2
+- Mix up the correct answer positions across all questions
 
 ${getDifficultyInstructions(difficultyMode, count)}
 
 CATEGORY FOCUS: Cover different ${category} subtopics: ${varietyTopics.slice(0, 5).join(', ')}${avoidanceNote}
+
+QUIZ INDUSTRY STANDARDS FOR ANSWER DISTRIBUTION:
+- Distribute correct answers evenly: 25% each position (A, B, C, D)
+- Maximum 2 consecutive questions with same correct position
+- No more than 40% of answers in any single position
+- Avoid obvious patterns (ABCD, AAAA, alternating, etc.)
+- Random but balanced distribution across the entire quiz
 
 Return ONLY a valid JSON array:
 [
@@ -193,22 +204,19 @@ Rules:
     
     console.log(`✅ Generated ${validQuestions.length}/${questions.length} valid questions`);
     
-    // Ensure all questions have correct category and difficulty
-    const finalQuestions = validQuestions.map(q => ({
+    // Apply industry-standard answer distribution
+    const processedQuestions = validQuestions.map(q => ({
       ...q,
       category: category, // Force correct category
       difficulty: difficultyMode === 'mixed' || difficultyMode === 'progressive' ? q.difficulty : difficultyMode // Force correct difficulty for single modes
     }));
     
+    const finalQuestions = applyStandardAnswerDistribution(processedQuestions);
+    
     // Track generated questions to avoid repetition
     if (finalQuestions.length > 0) {
       trackGeneratedQuestions(category, finalQuestions);
     }
-    
-    console.log(`📊 Final questions - Category: ${category}, Difficulty mode: ${difficultyMode}`);
-    finalQuestions.forEach((q, i) => {
-      console.log(`  Q${i+1}: ${q.difficulty} - ${q.question.substring(0, 50)}...`);
-    });
     
     return finalQuestions;
   } catch (error) {
@@ -246,10 +254,13 @@ export const generateQuestionsWithFallback = async (category, difficultyMode = '
     console.log(`⚠️ Using fallback questions for ${category} (got ${uniqueQuestions.length}/${count})`);
     const fallbackQuestions = getFallbackQuestions(category, count - uniqueQuestions.length, difficultyMode);
     
-    return [...uniqueQuestions, ...fallbackQuestions].slice(0, count);
+    // Apply industry standards to combined questions
+    const combinedQuestions = [...uniqueQuestions, ...fallbackQuestions].slice(0, count);
+    return applyStandardAnswerDistribution(combinedQuestions);
   } catch (error) {
     console.error('❌ AI generation failed, using fallback:', error.message);
-    return getFallbackQuestions(category, count, difficultyMode);
+    const fallbackQuestions = getFallbackQuestions(category, count, difficultyMode);
+    return applyStandardAnswerDistribution(fallbackQuestions);
   }
 };
 
@@ -414,6 +425,8 @@ const getDifficultyInstructions = (difficultyMode, count) => {
     return `DIFFICULTY REQUIREMENT: Mix of ${easy} questions with "difficulty": "easy", ${medium} questions with "difficulty": "medium", ${hard} questions with "difficulty": "hard"`;
   }
 };
+
+
 
 export const detectCheating = async (playerData) => {
   const { answers, avgResponseTime, accuracy } = playerData;

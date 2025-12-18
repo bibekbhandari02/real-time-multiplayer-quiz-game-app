@@ -493,6 +493,88 @@ export const fallbackQuestions = {
       difficulty: "medium",
       category: "Music"
     }
+  ],
+  'Nature': [
+    {
+      question: "What do bees collect from flowers?",
+      options: ["Nectar", "Pollen", "Water", "Seeds"],
+      correctAnswer: 0,
+      explanation: "Bees collect nectar from flowers to make honey, and pollen sticks to them as they work.",
+      difficulty: "easy",
+      category: "Nature"
+    },
+    {
+      question: "Which animal is known for changing colors?",
+      options: ["Frog", "Chameleon", "Snake", "Lizard"],
+      correctAnswer: 1,
+      explanation: "Chameleons are famous for their ability to change colors for camouflage and communication.",
+      difficulty: "easy",
+      category: "Nature"
+    },
+    {
+      question: "What process do plants use to make food?",
+      options: ["Respiration", "Photosynthesis", "Digestion", "Fermentation"],
+      correctAnswer: 1,
+      explanation: "Photosynthesis is the process plants use to convert sunlight, water, and CO2 into food.",
+      difficulty: "easy",
+      category: "Nature"
+    },
+    {
+      question: "Which bird cannot fly?",
+      options: ["Eagle", "Penguin", "Sparrow", "Robin"],
+      correctAnswer: 1,
+      explanation: "Penguins are flightless birds that have adapted for swimming instead of flying.",
+      difficulty: "easy",
+      category: "Nature"
+    },
+    {
+      question: "What is the largest mammal on Earth?",
+      options: ["Elephant", "Blue Whale", "Giraffe", "Hippopotamus"],
+      correctAnswer: 1,
+      explanation: "The blue whale is the largest mammal and the largest animal ever known to exist on Earth.",
+      difficulty: "easy",
+      category: "Nature"
+    },
+    {
+      question: "Which tree produces acorns?",
+      options: ["Pine", "Oak", "Maple", "Birch"],
+      correctAnswer: 1,
+      explanation: "Oak trees produce acorns, which are an important food source for many animals.",
+      difficulty: "medium",
+      category: "Nature"
+    },
+    {
+      question: "What type of animal is a dolphin?",
+      options: ["Fish", "Mammal", "Reptile", "Amphibian"],
+      correctAnswer: 1,
+      explanation: "Dolphins are marine mammals that breathe air and give birth to live young.",
+      difficulty: "medium",
+      category: "Nature"
+    },
+    {
+      question: "Which season do bears typically hibernate?",
+      options: ["Spring", "Summer", "Fall", "Winter"],
+      correctAnswer: 3,
+      explanation: "Bears hibernate during winter when food is scarce and temperatures are cold.",
+      difficulty: "medium",
+      category: "Nature"
+    },
+    {
+      question: "What is the study of birds called?",
+      options: ["Ornithology", "Entomology", "Botany", "Zoology"],
+      correctAnswer: 0,
+      explanation: "Ornithology is the scientific study of birds, their behavior, and biology.",
+      difficulty: "hard",
+      category: "Nature"
+    },
+    {
+      question: "Which ecosystem has the highest biodiversity?",
+      options: ["Desert", "Tundra", "Rainforest", "Grassland"],
+      correctAnswer: 2,
+      explanation: "Tropical rainforests have the highest biodiversity of any ecosystem on Earth.",
+      difficulty: "hard",
+      category: "Nature"
+    }
   ]
 };
 

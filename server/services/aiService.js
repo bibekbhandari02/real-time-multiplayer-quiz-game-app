@@ -32,10 +32,10 @@ async function callGeminiAPI(prompt, options = {}) {
   const requestBody = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { 
-      temperature: 0.7, // Balanced temperature for variety with consistency
-      maxOutputTokens: 2048, // Reduced for more concise responses
-      topP: 0.8, // More focused sampling
-      topK: 20 // More controlled randomness for consistent quality
+      temperature: 0.5, // Lower temperature for more consistent JSON
+      maxOutputTokens: 4096, // Increased to prevent truncation
+      topP: 0.9, // Slightly higher for better completion
+      topK: 40 // Allow more options for better JSON structure
     }
   };
 
@@ -100,9 +100,16 @@ export const generateQuestions = async (category, difficultyMode = 'mixed', coun
     const avoidanceNote = recentTopics.length > 0 ? 
       `\nAVOID these recently used topics: ${recentTopics.join(', ')}` : '';
 
-    const prompt = `STRICT REQUIREMENTS: Generate ${count} trivia questions ONLY about ${category}. DO NOT generate questions about other topics.
+    const prompt = `GENERATE ${count} TRIVIA QUESTIONS ABOUT ${category.toUpperCase()}
 
-CATEGORY REQUIREMENT: ALL questions MUST be about ${category} ONLY. No general knowledge, history, geography, or other topics unless they are specifically related to ${category}.
+MANDATORY CATEGORY RULE: Every single question MUST be directly about ${category}. 
+- If category is "Nature": Ask about animals, plants, ecosystems, wildlife, environment
+- If category is "Science": Ask about physics, chemistry, biology, astronomy
+- If category is "History": Ask about historical events, people, dates, civilizations
+- If category is "Technology": Ask about computers, software, gadgets, innovations
+- NEVER mix categories or use general knowledge questions
+
+${category.toUpperCase()} FOCUS: All questions must relate to ${category} topics only.
 
 QUESTION LENGTH STANDARDS:
 - Easy: 5-10 words maximum (e.g., "What is the capital of France?")
@@ -133,39 +140,79 @@ QUIZ INDUSTRY STANDARDS FOR ANSWER DISTRIBUTION:
 - Avoid obvious patterns (ABCD, AAAA, alternating, etc.)
 - Random but balanced distribution across the entire quiz
 
-Return ONLY a valid JSON array:
-[
-  {
-    "question": "What is the capital of France?",
-    "options": ["Paris", "London", "Berlin", "Madrid"],
-    "correctAnswer": 0,
-    "explanation": "Paris is the capital and largest city of France.",
-    "difficulty": "easy",
-    "category": "${category}"
-  }
-]
+JSON FORMAT: Return only valid JSON array. Example:
+[{"question":"What is a variable?","options":["Storage","Function","Loop","Class"],"correctAnswer":0,"explanation":"Variables store data.","difficulty":"easy","category":"${category}"}]
 
-Rules:
-- Keep questions SHORT and CLEAR
-- Exactly 4 options per question
-- correctAnswer is index 0-3
-- Brief explanations (1-2 sentences)
-- Return ONLY JSON array, no markdown
-- Return ONLY JSON array, no markdown`;
+Generate ${count} questions in this exact JSON format. No extra text.`;
 
     console.log(`🤖 Generating ${count} concise questions for ${category} (seed: ${randomSeed})...`);
     
     const result = await callGeminiAPI(prompt);
-    let cleaned = result.trim().replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+    let cleaned = result.trim();
     
+    // Remove markdown code blocks
+    cleaned = cleaned.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+    
+    // Remove any text before the JSON array
     const startIndex = cleaned.indexOf('[');
     const endIndex = cleaned.lastIndexOf(']');
     
     if (startIndex !== -1 && endIndex !== -1) {
       cleaned = cleaned.substring(startIndex, endIndex + 1);
+    } else if (startIndex !== -1) {
+      // JSON started but didn't end properly - likely truncated
+      console.warn('⚠️ JSON appears truncated, attempting to complete...');
+      cleaned = cleaned.substring(startIndex);
+      
+      // Try to close incomplete JSON
+      if (!cleaned.endsWith(']')) {
+        // Count open braces to close properly
+        const openBraces = (cleaned.match(/{/g) || []).length;
+        const closeBraces = (cleaned.match(/}/g) || []).length;
+        const missingBraces = openBraces - closeBraces;
+        
+        for (let i = 0; i < missingBraces; i++) {
+          cleaned += '}';
+        }
+        
+        if (!cleaned.endsWith(']')) {
+          cleaned += ']';
+        }
+      }
     }
     
-    const questions = JSON.parse(cleaned);
+    // Fix common JSON issues
+    cleaned = cleaned
+      .replace(/,\s*}/g, '}')  // Remove trailing commas before }
+      .replace(/,\s*]/g, ']')  // Remove trailing commas before ]
+      .replace(/'/g, '"')      // Replace single quotes with double quotes
+      .replace(/(\w+):/g, '"$1":'); // Add quotes around unquoted keys
+    
+    console.log('🔍 Cleaned JSON:', cleaned.substring(0, 200) + '...');
+    
+    let questions;
+    try {
+      questions = JSON.parse(cleaned);
+    } catch (parseError) {
+      console.error('❌ JSON Parse Error:', parseError.message);
+      console.error('❌ Problematic JSON:', cleaned);
+      
+      // Try to fix common issues and parse again
+      const fixedJson = cleaned
+        .replace(/,(\s*[}\]])/g, '$1')  // Remove trailing commas more aggressively
+        .replace(/([{,]\s*)(\w+):/g, '$1"$2":')  // Quote unquoted keys
+        .replace(/:\s*'([^']*)'/g, ': "$1"')  // Replace single quotes in values
+        .replace(/\n/g, ' ')  // Remove newlines
+        .replace(/\s+/g, ' '); // Normalize whitespace
+      
+      try {
+        questions = JSON.parse(fixedJson);
+        console.log('✅ Fixed JSON parsing on second attempt');
+      } catch (secondError) {
+        console.error('❌ Still failed after fixes:', secondError.message);
+        throw new Error(`Failed to parse AI response as JSON: ${parseError.message}`);
+      }
+    }
     
     const validQuestions = questions.filter(q => {
       // Basic validation
@@ -402,7 +449,10 @@ const getVarietyTopics = (category) => {
     'Anime': ['popular series', 'characters', 'studios', 'directors', 'voice actors', 'manga adaptations', 'genres', 'release years', 'awards', 'cultural impact'],
     'Movies': ['directors', 'actors', 'genres', 'awards', 'box office', 'cinematography', 'franchises', 'studios', 'release years', 'cultural impact'],
     'Music': ['artists', 'genres', 'albums', 'instruments', 'composers', 'bands', 'awards', 'music theory', 'history', 'cultural movements'],
-    'Technology': ['programming', 'hardware', 'software', 'internet', 'AI', 'mobile devices', 'gaming', 'cybersecurity', 'innovations', 'companies']
+    'Technology': ['programming', 'hardware', 'software', 'internet', 'AI', 'mobile devices', 'gaming', 'cybersecurity', 'innovations', 'companies'],
+    'Nature': ['animals', 'plants', 'ecosystems', 'wildlife', 'forests', 'oceans', 'birds', 'insects', 'mammals', 'environment'],
+    'Geography': ['countries', 'capitals', 'rivers', 'mountains', 'continents', 'oceans', 'cities', 'landmarks', 'climate', 'maps'],
+    'Sports': ['football', 'basketball', 'tennis', 'olympics', 'soccer', 'baseball', 'athletics', 'swimming', 'records', 'teams']
   };
   
   return topicMap[category] || topicMap['General Knowledge'];
